@@ -1,0 +1,1385 @@
+
+                    <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CareerCrate - Internship Management System</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <style>
+        :root {
+            --primary: #4361ee;
+            --primary-dark: #3a56d4;
+            --secondary: #7209b7;
+            --accent: #f72585;
+            --light: #f8f9fa;
+            --dark: #212529;
+            --gray: #6c757d;
+            --success: #4cc9f0;
+            --warning: #f9c74f;
+            --danger: #f94144;
+            --card-shadow: 0 10px 20px rgba(0, 0, 0, 0.08);
+            --transition: all 0.3s ease;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+        
+        body {
+            background-color: #f5f7fa;
+            color: var(--dark);
+            line-height: 1.6;
+            padding-top: 80px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        /* Header */
+        header {
+            background: rgba(255, 255, 255, 0.95);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+            backdrop-filter: blur(10px);
+            color: var(--dark);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            transition: var(--transition);
+        }
+        
+        header.scrolled {
+            padding: 0.7rem 2rem;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .logo-img {
+            height: 70px;
+            width: 250px;
+            display: block;
+        }
+
+        
+        /* Navigation */
+       nav {
+            display: flex;
+            gap: 1.5rem;
+            align-items: center;
+        }
+
+        nav a {
+            color: var(--dark);
+            text-decoration: none;
+            font-weight: 600;
+            position: relative;
+            padding: 0.5rem 0;
+            transition: color 0.3s;
+            font-size: 0.95rem;
+        }
+        
+        nav a:hover {
+            color: var(--primary);
+        }
+        
+        nav a::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--primary);
+            transition: var(--transition);
+        }
+        
+        nav a:hover::after {
+            width: 100%;
+        }
+        
+        .active {
+            color: var(--primary);
+        }
+        
+        .active::after {
+            width: 100%;
+        }
+        
+        /* Enhanced Hero Section */
+        .hero {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 50%, #7209b7 100%);
+            color: white;
+            padding: 100px 0;
+            text-align: center;
+            border-radius: 24px;
+            margin: 30px 0 60px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 20px 40px rgba(67, 97, 238, 0.3);
+            transform: translateZ(0);
+        }
+        
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: 
+                radial-gradient(circle at center, rgba(255, 255, 255, 0.1) 0%, transparent 20%),
+                url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" preserveAspectRatio="none"><path d="M0,0 L100,0 L100,100 Z" fill="rgba(255,255,255,0.05)"/></svg>');
+            background-size: 5% 5%, cover;
+            animation: rotate 30s linear infinite;
+            transform-origin: center;
+            z-index: 1;
+        }
+        
+        .hero-content {
+            max-width: 900px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 3;
+            padding: 0 20px;
+        }
+        
+        .hero h1 {
+            font-size: 3.5rem;
+            margin-bottom: 20px;
+            animation: fadeInUp 0.8s ease;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            line-height: 1.2;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        }
+        
+        .hero p {
+            font-size: 1.3rem;
+            margin-bottom: 40px;
+            opacity: 0.9;
+            animation: fadeInUp 1s ease;
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+            line-height: 1.6;
+        }
+        
+        .hero-buttons {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+            animation: fadeInUp 1.2s ease;
+        }
+        
+        .btn {
+            padding: 16px 36px;
+            border-radius: 50px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            border: none;
+            font-size: 1.1rem;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            gap: 10px;
+        }
+        
+        .btn-primary {
+            background: white;
+            color: var(--primary);
+            z-index: 2;
+        }
+        
+        .btn-primary::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+            transition: var(--transition);
+            z-index: -1;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(255, 255, 255, 0.3);
+        }
+        
+        .btn-primary:hover::before {
+            left: 100%;
+        }
+        
+        .btn-outline {
+            background: transparent;
+            color: white;
+            border: 2px solid rgba(255, 255, 255, 0.7);
+            z-index: 2;
+        }
+        
+        .btn-outline:hover {
+            background: white;
+            color: var(--primary);
+            transform: translateY(-5px);
+            border-color: white;
+            box-shadow: 0 10px 25px rgba(255, 255, 255, 0.2);
+        }
+
+        
+        
+        /* View Content */
+        .view {
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        .view.active {
+            display: block;
+        }
+        
+        /* Cards and Forms */
+        h2 {
+            color: var(--dark);
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid var(--primary);
+            position: relative;
+        }
+        
+        h2::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 60px;
+            height: 2px;
+            background: var(--accent);
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--dark);
+        }
+        
+        input, textarea, select {
+            width: 100%;
+            padding: 14px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: var(--transition);
+        }
+        
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.1);
+        }
+        
+        button {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: var(--transition);
+        }
+        
+        button:hover {
+            background-color: var(--primary-dark);
+            transform: translateY(-2px);
+        }
+        
+        .btn-google {
+            background-color: #DB4437;
+        }
+        
+        .btn-google:hover {
+            background-color: #C03A2E;
+            transform: translateY(-2px);
+        }
+        
+        .internship-form {
+            background-color: white;
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: var(--card-shadow);
+            margin-bottom: 30px;
+            transition: var(--transition);
+        }
+        
+        .internship-form:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+        }
+        
+        .search-bar {
+            display: flex;
+            margin-bottom: 30px;
+            gap: 15px;
+        }
+        
+        .search-bar input {
+            flex: 1;
+        }
+        
+        .filters {
+            background-color: white;
+            padding: 25px;
+            border-radius: 16px;
+            box-shadow: var(--card-shadow);
+            margin-bottom: 30px;
+        }
+        
+        .filter-options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .filter-options select {
+            flex: 1;
+            min-width: 180px;
+        }
+        
+        .internship-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 25px;
+        }
+        
+        .internship-card {
+            background-color: white;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: var(--card-shadow);
+            transition: var(--transition);
+        }
+        
+        .internship-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.12);
+        }
+        
+        .card-header {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 25px;
+            position: relative;
+        }
+        
+        .company-name {
+            font-size: 22px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        
+        .position {
+            font-size: 18px;
+            opacity: 0.9;
+        }
+        
+        .card-body {
+            padding: 25px;
+        }
+        
+        .details {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        
+        .detail-item {
+            text-align: center;
+        }
+        
+        .detail-value {
+            font-weight: 700;
+            color: var(--primary);
+            font-size: 18px;
+        }
+        
+        .card-footer {
+            padding: 20px;
+            background-color: #f8f9fa;
+            display: flex;
+            justify-content: space-between;
+            border-top: 1px solid #eee;
+        }
+        
+        .feedback-section {
+            background-color: white;
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: var(--card-shadow);
+            margin-top: 40px;
+        }
+        
+        .feedback-list {
+            margin-top: 20px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .feedback-item {
+            padding: 20px;
+            border-bottom: 1px solid #eee;
+            transition: var(--transition);
+        }
+        
+        .feedback-item:hover {
+            background-color: #f9f9f9;
+        }
+        
+        .feedback-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        
+        .feedback-rating {
+            color: var(--warning);
+        }
+        
+        .feedback-form {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+        }
+        
+        .rating {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+        
+        .rating i {
+            color: #ddd;
+            cursor: pointer;
+            font-size: 24px;
+            transition: var(--transition);
+        }
+        
+        .rating i.active {
+            color: var(--warning);
+            transform: scale(1.2);
+        }
+        
+        .rating i:hover {
+            color: var(--warning);
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 80px;
+            padding: 30px;
+            background: linear-gradient(to right, var(--dark), #2c3e50);
+            color: white;
+            border-radius: 16px 16px 0 0;
+        }
+        
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            background-color: var(--success);
+            color: white;
+            border-radius: 10px;
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+            display: none;
+            z-index: 1100;
+            animation: slideInRight 0.3s ease;
+        }
+        
+        .notification.error {
+            background-color: var(--danger);
+        }
+        
+        .loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 200px;
+        }
+        
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid rgba(0, 0, 0, 0.1);
+            border-radius: 50%;
+            border-top-color: var(--primary);
+            animation: spin 1s ease-in-out infinite;
+        }
+        
+        .login-prompt {
+            text-align: center;
+            padding: 50px;
+            background-color: white;
+            border-radius: 16px;
+            box-shadow: var(--card-shadow);
+        }
+        
+        .login-prompt i {
+            font-size: 64px;
+            color: var(--primary);
+            margin-bottom: 20px;
+        }
+        
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes slideInRight {
+            from {
+                opacity: 0;
+                transform: translateX(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* Responsive Design */
+        @media (max-width: 992px) {
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+            
+            nav {
+                gap: 1rem;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            body {
+                padding-top: 70px;
+            }
+            
+            header {
+                padding: 0.8rem 1.5rem;
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .logo {
+                margin-bottom: 10px;
+            }
+            
+            nav {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            
+            .hero {
+                padding: 60px 0;
+            }
+            
+            .hero h1 {
+                font-size: 2rem;
+            }
+            
+            .hero p {
+                font-size: 1rem;
+            }
+            
+            .hero-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .internship-list {
+                grid-template-columns: 1fr;
+            }
+            
+            .filter-options select {
+                min-width: 100%;
+            }
+            
+            .search-bar {
+                flex-direction: column;
+            }
+            
+            .details {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .card-footer {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .card-footer button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="notification" id="notification">Operation successful!</div>
+    
+    <!-- Header -->
+    <header id="main-header">
+        <div class="logo">
+            <img src="Screenshot 2025-07-13 141234.png" alt="CareerCrate Logo" class="logo-img">
+        </div>
+        <nav class="navbar">
+            <a href="index.html">Home</a>
+            <a href="index.html#features">Features</a>
+            <a href="resume.html" >Resume</a>
+            <a href="portfolio.html">Portfolio</a>
+            <a href="internships.html"class="active">Internships</a>
+            <a href="mock.html">Mock Interview</a>
+             <a href="carrerpath.html">Career Suggestions</a>
+            <a href="index.html#contact">Contact</a>
+        </nav>
+    </header>
+
+    <div class="container">
+        <!-- Hero Section -->
+        <section class="hero">
+            <div class="hero-content">
+                <h1>Find Your Dream Internship</h1>
+                <p>Connect with top companies and kickstart your career with CareerCrate's internship platform</p>
+                <div class="hero-buttons">
+                    <a href="#user-view" class="btn btn-primary" onclick="showView('user-view')">Browse Internships</a>
+                    <a href="#company-view" class="btn btn-outline" onclick="showView('company-view')">Post an Internship</a>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- Company View -->
+        <div id="company-view" class="view active">
+            <div id="company-content">
+                <div class="login-prompt" id="company-login-prompt">
+                    <i class="fas fa-building"></i>
+                    <h2>Company Portal</h2>
+                    <p>Sign in with Google to post and manage internship opportunities</p>
+                    <button class="btn btn-google" onclick="signInWithGoogle()">
+                        <i class="fab fa-google"></i> Sign in with Google
+                    </button>
+                </div>
+                
+                <div id="company-authorized" style="display: none;">
+                    <h2>Post a New Internship Opportunity</h2>
+                    <div class="internship-form">
+                        <form id="internship-form">
+                            <div class="form-group">
+                                <label for="company-name">Company Name</label>
+                                <input type="text" id="company-name" required placeholder="Enter your company name">
+                            </div>
+                            <div class="form-group">
+                                <label for="position">Position</label>
+                                <input type="text" id="position" required placeholder="Enter internship position">
+                            </div>
+                            <div class="form-group">
+                                <label for="stipend">Stipend (₹)</label>
+                                <input type="number" id="stipend" required placeholder="Enter stipend amount">
+                            </div>
+                            <div class="form-group">
+                                <label for="duration">Duration (months)</label>
+                                <input type="number" id="duration" required placeholder="Enter duration in months">
+                            </div>
+                            <div class="form-group">
+                                <label for="description">Description</label>
+                                <textarea id="description" rows="4" required placeholder="Enter internship description"></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label for="requirements">Requirements</label>
+                                <textarea id="requirements" rows="3" required placeholder="Enter requirements"></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label for="contact-email">Contact Email</label>
+                                <input type="email" id="contact-email" required placeholder="Enter contact email">
+                            </div>
+                            <button type="submit">Post Internship</button>
+                        </form>
+                    </div>
+                    
+                    
+                </div>
+            </div>
+        </div>
+
+        <!-- User View -->
+        <div id="user-view" class="view">
+            <h2>Available Internships</h2>
+            
+            <div class="search-bar">
+                <input type="text" id="search-input" placeholder="Search internships by company, position, or keywords">
+                <button onclick="searchInternships()">Search</button>
+            </div>
+            
+            <div class="filters">
+                <h3>Filters</h3>
+                <div class="filter-options">
+                    <select id="duration-filter" onchange="searchInternships()">
+                        <option value="">Any Duration</option>
+                        <option value="1-3">1-3 months</option>
+                        <option value="3-6">3-6 months</option>
+                        <option value="6+">6+ months</option>
+                    </select>
+                    <select id="stipend-filter" onchange="searchInternships()">
+                        <option value="">Any Stipend</option>
+                        <option value="0-5000">Up to ₹5,000</option>
+                        <option value="5000-10000">₹5,000-₹10,000</option>
+                        <option value="10000-20000">₹10,000-₹20,000</option>
+                        <option value="20000+">₹20,000+</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div id="user-internships" class="internship-list">
+                <div class="loading">
+                    <div class="spinner"></div>
+                </div>
+            </div>
+            
+            <div class="feedback-section" id="feedback-section">
+                <h3>Internship Feedback</h3>
+                <p>Select an internship to view or submit feedback</p>
+                
+                <div class="feedback-list" id="feedback-list">
+                    <!-- Feedback will be loaded here -->
+                </div>
+                
+                <div class="feedback-form" id="feedback-form" style="display: none;">
+                    <h4>Submit Your Feedback</h4>
+                    <div class="form-group">
+                        <label for="feedback-company">Company Name</label>
+                        <input type="text" id="feedback-company" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label for="feedback-position">Internship Position</label>
+                        <input type="text" id="feedback-position" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label>Rating</label>
+                        <div class="rating" id="rating-stars">
+                            <i class="fas fa-star" onmouseover="rateInternship(1)" onclick="setRating(1)"></i>
+                            <i class="fas fa-star" onmouseover="rateInternship(2)" onclick="setRating(2)"></i>
+                            <i class="fas fa-star" onmouseover="rateInternship(3)" onclick="setRating(3)"></i>
+                            <i class="fas fa-star" onmouseover="rateInternship(4)" onclick="setRating(4)"></i>
+                            <i class="fas fa-star" onmouseover="rateInternship(5)" onclick="setRating(5)"></i>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="feedback-text">Your Feedback</label>
+                        <textarea id="feedback-text" rows="4" placeholder="Describe your experience"></textarea>
+                    </div>
+                    <button type="button" onclick="submitFeedback()">Submit Feedback</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    
+
+    <script>
+        // Header scroll effect
+        window.addEventListener('scroll', function() {
+            const header = document.getElementById('main-header');
+            if (window.scrollY > 50) {
+                header.classList.add('scrolled');
+            } else {
+                header.classList.remove('scrolled');
+            }
+        });
+
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyCMTlja4NrE4Cv3_Cv79pRDEykQt8lW1XI",
+            authDomain: "carrercrate.firebaseapp.com",
+            projectId: "carrercrate",
+            storageBucket: "carrercrate.firebasestorage.app",
+            messagingSenderId: "312167069617",
+            appId: "1:312167069617:web:a22835b5c4e45c61396f90",
+            measurementId: "G-4WLGNXRHR3"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        const auth = firebase.auth();
+        
+        // Reference to collections
+        const internshipsRef = db.collection("internships");
+        const feedbackRef = db.collection("feedback");
+        
+        // Global variables
+        let currentRating = 0;
+        let selectedInternshipId = null;
+        
+        // DOM Elements
+        const companyLoginPrompt = document.getElementById('company-login-prompt');
+        const companyAuthorized = document.getElementById('company-authorized');
+        const feedbackForm = document.getElementById('feedback-form');
+        
+        // Auth state listener
+        auth.onAuthStateChanged(user => {
+            if (user) {
+                // User is signed in
+                toggleCompanyView(true);
+            } else {
+                // User is signed out
+                toggleCompanyView(false);
+            }
+        });
+        
+        // Toggle company view based on auth state
+        function toggleCompanyView(isAuthenticated) {
+            if (isAuthenticated) {
+                companyLoginPrompt.style.display = 'none';
+                companyAuthorized.style.display = 'block';
+                loadCompanyInternships();
+            } else {
+                companyLoginPrompt.style.display = 'block';
+                companyAuthorized.style.display = 'none';
+            }
+        }
+        
+        // Sign in with Google
+        function signInWithGoogle() {
+            const provider = new firebase.auth.GoogleAuthProvider();
+            
+            auth.signInWithPopup(provider)
+            .then((result) => {
+                showNotification('Signed in successfully!');
+            })
+            .catch((error) => {
+                showNotification('Error signing in: ' + error.message, true);
+            });
+        }
+        
+        // Sign out
+        function signOut() {
+            auth.signOut()
+            .then(() => {
+                showNotification('Signed out successfully');
+            })
+            .catch((error) => {
+                showNotification('Error signing out: ' + error.message, true);
+            });
+        }
+        
+        // Toggle between company and user views
+        function showView(viewId) {
+            // Hide all views
+            document.querySelectorAll('.view').forEach(view => {
+                view.classList.remove('active');
+            });
+            
+            // Show selected view
+            document.getElementById(viewId).classList.add('active');
+            
+            // Update toggle buttons
+            document.querySelectorAll('.toggle-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // Find the button that was clicked and activate it
+            const buttons = document.querySelectorAll('.toggle-btn');
+            for (let i = 0; i < buttons.length; i++) {
+                if (buttons[i].getAttribute('onclick').includes(viewId)) {
+                    buttons[i].classList.add('active');
+                }
+            }
+            
+            // Load data when switching to user view
+            if (viewId === 'user-view') {
+                loadUserInternships();
+            }
+        }
+        
+        // Handle internship form submission
+        document.getElementById('internship-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const user = auth.currentUser;
+            if (!user) {
+                showNotification('Please sign in to post internships', true);
+                return;
+            }
+            
+            const companyName = document.getElementById('company-name').value;
+            const position = document.getElementById('position').value;
+            const stipend = document.getElementById('stipend').value;
+            const duration = document.getElementById('duration').value;
+            const description = document.getElementById('description').value;
+            const requirements = document.getElementById('requirements').value;
+            const contactEmail = document.getElementById('contact-email').value;
+            
+            // Add internship to Firestore
+            internshipsRef.add({
+                companyName: companyName,
+                position: position,
+                stipend: parseInt(stipend),
+                duration: parseInt(duration),
+                description: description,
+                requirements: requirements,
+                contactEmail: contactEmail,
+                postedBy: user.uid,
+                postedByEmail: user.email,
+                postedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                verified: false
+            })
+            .then((docRef) => {
+                console.log("Document written with ID: ", docRef.id);
+                showNotification('Internship posted successfully!');
+                this.reset();
+                loadCompanyInternships();
+            })
+            .catch((error) => {
+                console.error("Error adding document: ", error);
+                showNotification('Error posting internship. Please try again.', true);
+            });
+        });
+        
+        // Load internships for company view
+        function loadCompanyInternships() {
+            const user = auth.currentUser;
+            if (!user) return;
+            
+            const container = document.getElementById('company-internships');
+            if (!container) {
+                console.error("Company internships container not found");
+                return;
+            }
+            
+            container.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+            
+            // Load internships posted by the current user
+            internshipsRef.where('postedBy', '==', user.uid).orderBy('postedAt', 'desc').get()
+            .then((querySnapshot) => {
+                container.innerHTML = '';
+                
+                if (querySnapshot.empty) {
+                    container.innerHTML = '<p>No internships posted yet.</p>';
+                    return;
+                }
+                
+                querySnapshot.forEach((doc) => {
+                    const data = doc.data();
+                    const internshipCard = createInternshipCard(data, true, doc.id);
+                    container.appendChild(internshipCard);
+                });
+            })
+            .catch((error) => {
+                console.error("Error getting documents: ", error);
+                container.innerHTML = '<p>Error loading internships. Please try again.</p>';
+            });
+        }
+        
+        // Load internships for user view
+        function loadUserInternships() {
+            const container = document.getElementById('user-internships');
+            container.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+            
+            internshipsRef.orderBy('postedAt', 'desc').get()
+            .then((querySnapshot) => {
+                container.innerHTML = '';
+                
+                if (querySnapshot.empty) {
+                    container.innerHTML = '<p>No internships available at the moment.</p>';
+                    return;
+                }
+                
+                querySnapshot.forEach((doc) => {
+                    const data = doc.data();
+                    const internshipCard = createInternshipCard(data, false, doc.id);
+                    container.appendChild(internshipCard);
+                });
+            })
+            .catch((error) => {
+                console.error("Error getting documents: ", error);
+                container.innerHTML = '<p>Error loading internships. Please try again.</p>';
+            });
+        }
+        
+        // Search and filter internships
+        function searchInternships() {
+            const searchTerm = document.getElementById('search-input').value.toLowerCase();
+            const durationFilter = document.getElementById('duration-filter').value;
+            const stipendFilter = document.getElementById('stipend-filter').value;
+            
+            const container = document.getElementById('user-internships');
+            container.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+            
+            internshipsRef.orderBy('postedAt', 'desc').get()
+            .then((querySnapshot) => {
+                container.innerHTML = '';
+                let found = false;
+                
+                querySnapshot.forEach((doc) => {
+                    const data = doc.data();
+                    
+                    // Apply search filter
+                    if (searchTerm && 
+                        !data.companyName.toLowerCase().includes(searchTerm) && 
+                        !data.position.toLowerCase().includes(searchTerm) &&
+                        !data.description.toLowerCase().includes(searchTerm)) {
+                        return;
+                    }
+                    
+                    // Apply duration filter
+                    if (durationFilter) {
+                        const duration = parseInt(data.duration);
+                        
+                        switch(durationFilter) {
+                            case "1-3":
+                                if (duration < 1 || duration > 3) return;
+                                break;
+                            case "3-6":
+                                if (duration < 3 || duration > 6) return;
+                                break;
+                            case "6+":
+                                if (duration < 6) return;
+                                break;
+                        }
+                    }
+                    
+                    // Apply stipend filter
+                    if (stipendFilter) {
+                        const stipend = parseInt(data.stipend);
+                        
+                        switch(stipendFilter) {
+                            case "0-5000":
+                                if (stipend < 0 || stipend > 5000) return;
+                                break;
+                            case "5000-10000":
+                                if (stipend < 5000 || stipend > 10000) return;
+                                break;
+                            case "10000-20000":
+                                if (stipend < 10000 || stipend > 20000) return;
+                                break;
+                            case "20000+":
+                                if (stipend < 20000) return;
+                                break;
+                        }
+                    }
+                    
+                    const internshipCard = createInternshipCard(data, false, doc.id);
+                    container.appendChild(internshipCard);
+                    found = true;
+                });
+                
+                if (!found) {
+                    container.innerHTML = '<p>No internships match your criteria.</p>';
+                }
+            })
+            .catch((error) => {
+                console.error("Error searching documents: ", error);
+                container.innerHTML = '<p>Error searching internships. Please try again.</p>';
+            });
+        }
+        
+        // Create internship card HTML
+        function createInternshipCard(data, isCompanyView, docId) {
+            const card = document.createElement('div');
+            card.className = 'internship-card';
+            
+            card.innerHTML = `
+                <div class="card-header">
+                    <div class="company-name">${escapeHtml(data.companyName)}</div>
+                    <div class="position">${escapeHtml(data.position)}</div>
+                </div>
+                <div class="card-body">
+                    <p>${escapeHtml(data.description)}</p>
+                    <div class="details">
+                        <div class="detail-item">
+                            <div class="detail-label">Stipend</div>
+                            <div class="detail-value">₹${data.stipend}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Duration</div>
+                            <div class="detail-value">${data.duration} months</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    ${isCompanyView ? 
+                        `<button onclick="editInternship('${docId}')">Edit</button>
+                         <button onclick="deleteInternship('${docId}')">Delete</button>` :
+                    `   <button onclick="applyForInternship('${data.contactEmail}', '${data.companyName}', '${data.position}')">
+    Apply Now
+</button>     <button onclick="showFeedbackForm('${docId}', '${escapeHtml(data.companyName)}', '${escapeHtml(data.position)}')">Feedback</button>`
+                    }
+                </div>
+            `;
+            
+            return card;
+        }
+        
+       function applyForInternship(email, companyName, position) {
+    if (!email) {
+        alert("No contact email available for this internship.");
+        return;
+    }
+
+    // Pre-fill subject and body
+    const subject = encodeURIComponent(`Application for ${position} at ${companyName}`);
+    const body = encodeURIComponent(`Hello ${companyName},\n\nI am interested in applying for the ${position} internship.\n\nPlease find my details attached.\n\nRegards,\n[Your Name]`);
+
+    // Open Gmail in browser if available, else default mail client
+    const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${email}&su=${subject}&body=${body}`;
+    const mailtoUrl = `mailto:${email}?subject=${subject}&body=${body}`;
+
+    // Try Gmail first (for browser users)
+    window.open(gmailUrl, '_blank');
+
+    // Also keep mailto as fallback
+    setTimeout(() => {
+        window.location.href = mailtoUrl;
+    }, 1000);
+}
+
+        
+        // Show feedback form for a specific internship
+        function showFeedbackForm(internshipId, companyName, position) {
+            selectedInternshipId = internshipId;
+            
+            document.getElementById('feedback-company').value = companyName;
+            document.getElementById('feedback-position').value = position;
+            
+            feedbackForm.style.display = 'block';
+            feedbackForm.scrollIntoView({ behavior: 'smooth' });
+            
+            loadFeedback(internshipId);
+        }
+        
+        // Load feedback for a specific internship
+        function loadFeedback(internshipId) {
+            const feedbackList = document.getElementById('feedback-list');
+            feedbackList.innerHTML = '<p>Loading feedback...</p>';
+            
+            feedbackRef.where('internshipId', '==', internshipId).orderBy('createdAt', 'desc').get()
+            .then((querySnapshot) => {
+                feedbackList.innerHTML = '';
+                
+                if (querySnapshot.empty) {
+                    feedbackList.innerHTML = '<p>No feedback yet. Be the first to submit feedback!</p>';
+                    return;
+                }
+                
+                querySnapshot.forEach((doc) => {
+                    const data = doc.data();
+                    const feedbackItem = document.createElement('div');
+                    feedbackItem.className = 'feedback-item';
+                    
+                    // Format date safely
+                    let feedbackDate = 'Unknown date';
+                    if (data.createdAt && data.createdAt.toDate) {
+                        feedbackDate = formatDate(data.createdAt.toDate());
+                    }
+                    
+                    feedbackItem.innerHTML = `
+                        <div class="feedback-header">
+                            <strong>${escapeHtml(data.userName || 'Anonymous')}</strong>
+                            <div class="feedback-rating">
+                                ${getStarRating(data.rating)}
+                            </div>
+                        </div>
+                        <p>${escapeHtml(data.feedback || 'No feedback text provided.')}</p>
+                        <small>${feedbackDate}</small>
+                    `;
+                    
+                    feedbackList.appendChild(feedbackItem);
+                });
+            })
+            .catch((error) => {
+                console.error("Error getting feedback: ", error);
+                feedbackList.innerHTML = '<p>Error loading feedback. Please try again.</p>';
+            });
+        }
+        
+        // Submit feedback
+        function submitFeedback() {
+            const user = auth.currentUser;
+            if (!user) {
+                showNotification('Please sign in to submit feedback', true);
+                return;
+            }
+            
+            if (!selectedInternshipId) {
+                showNotification('Please select an internship first', true);
+                return;
+            }
+            
+            if (currentRating === 0) {
+                showNotification('Please provide a rating', true);
+                return;
+            }
+            
+            const feedbackText = document.getElementById('feedback-text').value;
+            if (!feedbackText.trim()) {
+                showNotification('Please provide feedback text', true);
+                return;
+            }
+            
+            const companyName = document.getElementById('feedback-company').value;
+            const position = document.getElementById('feedback-position').value;
+            
+            feedbackRef.add({
+                internshipId: selectedInternshipId,
+                companyName: companyName,
+                position: position,
+                rating: currentRating,
+                feedback: feedbackText,
+                userName: user.displayName || 'Anonymous',
+                userId: user.uid,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            })
+            .then((docRef) => {
+                console.log("Feedback submitted with ID: ", docRef.id);
+                showNotification('Thank you for your feedback!');
+                document.getElementById('feedback-text').value = '';
+                resetRating();
+                loadFeedback(selectedInternshipId);
+            })
+            .catch((error) => {
+                console.error("Error submitting feedback: ", error);
+                showNotification('Error submitting feedback. Please try again.', true);
+            });
+        }
+        
+        // Rating functionality for feedback
+        function rateInternship(stars) {
+            const starIcons = document.querySelectorAll('#rating-stars i');
+            starIcons.forEach((star, index) => {
+                if (index < stars) {
+                    star.classList.add('active');
+                } else {
+                    star.classList.remove('active');
+                }
+            });
+        }
+        
+        function setRating(stars) {
+            currentRating = stars;
+            rateInternship(stars);
+        }
+        
+        function resetRating() {
+            currentRating = 0;
+            const starIcons = document.querySelectorAll('#rating-stars i');
+            starIcons.forEach(star => {
+                star.classList.remove('active');
+            });
+        }
+        
+        // Helper function to generate star rating HTML
+        function getStarRating(rating) {
+            let stars = '';
+            for (let i = 1; i <= 5; i++) {
+                stars += `<i class="fas fa-star${i <= rating ? ' active' : ''}"></i>`;
+            }
+            return stars;
+        }
+        
+        // Helper function to format date
+        function formatDate(date) {
+            if (!date) return '';
+            return date.toLocaleDateString('en-IN', { 
+                year: 'numeric', 
+                month: 'short', 
+                day: 'numeric' 
+            });
+        }
+        
+        // Helper function to escape HTML to prevent XSS
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        
+        // Show notification
+        function showNotification(message, isError = false) {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.className = isError ? 'notification error' : 'notification';
+            notification.style.display = 'block';
+            
+            setTimeout(() => {
+                notification.style.display = 'none';
+            }, 3000);
+        }
+        
+        // Initialize the application
+        function initApp() {
+            showLoginButton();
+            loadUserInternships();
+            
+            // Add event listeners for filters to auto-apply when changed
+            document.getElementById('duration-filter').addEventListener('change', searchInternships);
+            document.getElementById('stipend-filter').addEventListener('change', searchInternships);
+            
+            // Add event listener for search input
+            document.getElementById('search-input').addEventListener('keyup', function(event) {
+                if (event.key === 'Enter') {
+                    searchInternships();
+                }
+            });
+        }
+        
+        // Start the application when the page loads
+        window.onload = initApp;
+    </script>
+</body>
+</html>

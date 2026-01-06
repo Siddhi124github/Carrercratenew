@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CareerPath Pro - AI Career Recommendation</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+:root { 
+  --primary: #764ba2; 
+  --dark: #333; 
+  --accent: #ff6b6b;
+  --neon: #00ff9d;
+  --gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  --crazy-gradient: linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1, #96ceb4, #feca57, #ff9ff3, #54a0ff);
+}
+
+* {
+  margin:0; 
+  padding:0; 
+  box-sizing:border-box; 
+  font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body { 
+  background: var(--gradient); 
+  color:#333; 
+  min-height:100vh; 
+  padding-top: 100px; 
+  overflow-x: hidden;
+  position: relative;
+}
+
+/* Crazy animated background elements */
+body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: var(--crazy-gradient);
+  background-size: 400% 400%;
+  z-index: -2;
+  opacity: 0.1;
+  animation: gradientShift 15s ease infinite;
+}
+
+@keyframes gradientShift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.floating-shapes {
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  z-index: -1;
+  overflow: hidden;
+}
+
+.shape {
+  position: absolute;
+  opacity: 0.1;
+  border-radius: 50%;
+  animation: float 20s infinite linear;
+}
+
+.shape:nth-child(1) {
+  width: 100px;
+  height: 100px;
+  background: var(--accent);
+  top: 10%;
+  left: 5%;
+  animation-delay: 0s;
+}
+
+.shape:nth-child(2) {
+  width: 150px;
+  height: 150px;
+  background: var(--neon);
+  top: 60%;
+  left: 80%;
+  animation-delay: -5s;
+}
+
+.shape:nth-child(3) {
+  width: 80px;
+  height: 80px;
+  background: #4ecdc4;
+  top: 80%;
+  left: 10%;
+  animation-delay: -10s;
+}
+
+.shape:nth-child(4) {
+  width: 120px;
+  height: 120px;
+  background: #feca57;
+  top: 20%;
+  left: 70%;
+  animation-delay: -15s;
+}
+
+@keyframes float {
+  0% {
+    transform: translate(0, 0) rotate(0deg);
+  }
+  33% {
+    transform: translate(30px, -50px) rotate(120deg);
+  }
+  66% {
+    transform: translate(-20px, 20px) rotate(240deg);
+  }
+  100% {
+    transform: translate(0, 0) rotate(360deg);
+  }
+}
+
+.container {
+  max-width:1200px; 
+  margin:0 auto; 
+  padding: 0 20px;
+}
+
+header { 
+  background: white; 
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08); 
+  backdrop-filter: blur(10px); 
+  color: var(--dark); 
+  padding: 1rem 2rem; 
+  display: flex; 
+  justify-content: space-between; 
+  align-items: center; 
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); 
+  position: fixed; 
+  width: 100%; 
+  top: 0; 
+  z-index: 1000; 
+}
+
+.logo { 
+  display: flex; 
+  align-items: center; 
+  gap: 10px; 
+}
+
+.logo-img { 
+  height: 70px; 
+  width: 250px; 
+  display: block; 
+  background: #f0f0f0; 
+  border-radius: 5px; 
+  display: flex; 
+  align-items: center; 
+  justify-content: center; 
+  color: #764ba2; 
+  font-weight: bold; 
+}
+
+nav { 
+  display: flex; 
+  gap: 1.5rem; 
+  align-items: center; 
+}
+
+nav a { 
+  color: var(--dark); 
+  text-decoration: none; 
+  font-weight: 600; 
+  position: relative; 
+  padding: 0.5rem 0; 
+  transition: color 0.3s; 
+  font-size: 0.95rem; 
+}
+
+nav a:hover { 
+  color: var(--primary); 
+}
+
+nav a::after { 
+  content: ''; 
+  position: absolute; 
+  bottom: 0; 
+  left: 0; 
+  width: 0; 
+  height: 2px; 
+  background: var(--primary); 
+  transition: width 0.3s; 
+}
+
+nav a:hover::after { 
+  width: 100%; 
+}
+
+.active { 
+  color: var(--primary); 
+}
+
+.active::after { 
+  width: 100%; 
+}
+
+.page-header {
+  text-align:center; 
+  margin-bottom:40px; 
+  padding:20px; 
+  color:white;
+  position: relative;
+  overflow: hidden;
+  border-radius: 15px;
+}
+
+.page-header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+ 
+  backdrop-filter: blur(5px);
+  z-index: -1;
+}
+
+.page-header h1 {
+  font-size:2.8rem; 
+  margin-bottom:10px;
+  text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+  animation: titleGlow 3s ease-in-out infinite alternate;
+}
+
+@keyframes titleGlow {
+  from {
+    text-shadow: 0 0 10px rgba(255,255,255,0.5), 0 0 20px rgba(118, 75, 162, 0.5);
+  }
+  to {
+    text-shadow: 0 0 15px rgba(255,255,255,0.7), 0 0 30px rgba(118, 75, 162, 0.7), 0 0 40px rgba(102, 126, 234, 0.5);
+  }
+}
+
+.page-header p {
+  font-size:1.2rem; 
+  max-width:800px; 
+  margin:0 auto; 
+  opacity:0.9;
+}
+
+.card { 
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(10px);
+  border-radius:15px; 
+  box-shadow:0 10px 30px rgba(0,0,0,0.15); 
+  padding:30px; 
+  margin-bottom:30px; 
+  transition: transform 0.3s ease, box-shadow 0.3s ease; 
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  position: relative;
+  overflow: hidden;
+}
+
+.card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+  transition: left 0.5s;
+}
+
+.card:hover::before {
+  left: 100%;
+}
+
+.card:hover {
+  transform: translateY(-5px) scale(1.01);
+  box-shadow: 0 15px 40px rgba(0,0,0,0.2);
+}
+
+.card-title { 
+  font-size:1.5rem; 
+  color:#764ba2; 
+  margin-bottom:20px; 
+  padding-bottom:10px; 
+  border-bottom:2px solid #f0f0f0; 
+  display:flex; 
+  align-items:center; 
+}
+
+.card-title i {
+  margin-right:10px;
+}
+
+.input-group {
+  margin-bottom:20px;
+}
+
+.input-group label {
+  display:block; 
+  margin-bottom:8px; 
+  font-weight:600; 
+  color:#555;
+}
+
+.tags-input { 
+  display:flex; 
+  flex-wrap:wrap; 
+  gap:10px; 
+  padding:12px; 
+  border:1px solid #ddd; 
+  border-radius:8px; 
+  background:#fff; 
+  transition: all 0.3s ease;
+}
+
+.tags-input:focus-within {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px rgba(118, 75, 162, 0.2);
+}
+
+.tag { 
+  background: var(--gradient);
+  color:white; 
+  padding:5px 12px; 
+  border-radius:20px; 
+  display:flex; 
+  align-items:center; 
+  font-size:0.9rem; 
+  animation: popIn 0.3s ease;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+@keyframes popIn {
+  0% { transform: scale(0.8); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.tag i {
+  margin-left:8px; 
+  cursor:pointer;
+  transition: transform 0.2s;
+}
+
+.tag i:hover {
+  transform: scale(1.2);
+}
+
+.tags-input input, input[type="text"] {
+  flex-grow:1; 
+  border:none; 
+  outline:none; 
+  padding:8px; 
+  font-size:1rem;
+  background: transparent;
+}
+
+.btn { 
+  background: var(--gradient);
+  color:white; 
+  border:none; 
+  padding:12px 25px; 
+  border-radius:8px; 
+  cursor:pointer; 
+  font-size:1rem; 
+  font-weight:600; 
+  transition: all 0.3s ease; 
+  display:inline-flex; 
+  align-items:center; 
+  justify-content:center; 
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 4px 15px rgba(118, 75, 162, 0.3);
+}
+
+.btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+  transition: left 0.5s;
+}
+
+.btn:hover::before {
+  left: 100%;
+}
+
+.btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(118, 75, 162, 0.4);
+}
+
+.btn i {
+  margin-right:8px;
+}
+
+.result-container {
+  display:none; 
+  margin-top:30px; 
+  padding:20px; 
+  border-radius:10px; 
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(10px);
+  border-left:4px solid #667eea;
+  animation: fadeIn 0.5s ease;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.result-title {
+  font-size:1.3rem; 
+  color:#764ba2; 
+  margin-bottom:15px;
+}
+
+.loading {
+  display:none; 
+  text-align:center; 
+  padding:20px;
+}
+
+.loading i {
+  font-size:2rem; 
+  color:#764ba2; 
+  margin-bottom:10px;
+}
+
+.tab-container {
+  display:flex; 
+  margin-bottom:20px; 
+  border-bottom:1px solid #ddd;
+}
+
+.tab { 
+  padding:12px 25px; 
+  cursor:pointer; 
+  font-weight:600; 
+  color:#666; 
+  border-bottom:3px solid transparent; 
+  transition:all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.tab::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 0;
+  height: 3px;
+  background: var(--gradient);
+  transition: width 0.3s ease;
+}
+
+.tab.active::after {
+  width: 100%;
+}
+
+.tab.active {
+  color:#764ba2;
+}
+
+.tab-content {
+  display:none;
+  animation: fadeIn 0.5s ease;
+}
+
+.tab-content.active {
+  display:block;
+}
+
+.skill-badge { 
+  display: inline-block; 
+  background: var(--gradient);
+  color: white;
+  padding: 4px 10px; 
+  border-radius: 12px; 
+  margin: 2px 4px; 
+  font-size: 0.85rem; 
+  animation: popIn 0.3s ease;
+}
+
+.section-title { 
+  color:#764ba2; 
+  margin-top:15px; 
+  margin-bottom:8px; 
+  font-weight:600; 
+}
+
+.section-list { 
+  list-style-type: disc; 
+  margin-left:20px; 
+  margin-bottom:10px; 
+}
+
+/* Crazy elements */
+.crazy-element {
+  position: fixed;
+  z-index: 999;
+  pointer-events: none;
+  animation: crazyFloat 10s infinite linear;
+}
+
+@keyframes crazyFloat {
+  0% { transform: translate(0, 0) rotate(0deg); }
+  25% { transform: translate(100px, 50px) rotate(90deg); }
+  50% { transform: translate(50px, 100px) rotate(180deg); }
+  75% { transform: translate(-50px, 50px) rotate(270deg); }
+  100% { transform: translate(0, 0) rotate(360deg); }
+}
+
+.particle {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  background: var(--neon);
+  border-radius: 50%;
+  pointer-events: none;
+  animation: particleFloat 3s infinite linear;
+}
+
+@keyframes particleFloat {
+  0% { transform: translateY(0) scale(1); opacity: 1; }
+  100% { transform: translateY(-100px) scale(0); opacity: 0; }
+}
+
+@media (max-width:768px){ 
+  .card{padding:20px;} 
+  .page-header h1{font-size:2.2rem;} 
+  .tab{padding:10px 15px; font-size:0.9rem;} 
+  nav {flex-wrap: wrap; justify-content: center; gap: 1rem;} 
+  header {flex-direction: column; padding: 1rem;} 
+  .logo {margin-bottom: 10px;} 
+}
+</style>
+</head>
+<body>
+<!-- Crazy background elements -->
+<div class="floating-shapes">
+  <div class="shape"></div>
+  <div class="shape"></div>
+  <div class="shape"></div>
+  <div class="shape"></div>
+</div>
+
+<header>
+   <div class="logo">
+      <img src="Screenshot 2025-07-13 141234.png" alt="CareerCrate Logo" class="logo-img">
+    </div>
+    <nav class="navbar">
+        <a href="index.html">Home</a>
+        <a href="index.html#features">Features</a>
+        <a href="resume.html">Resume</a>
+        <a href="portfolio.html">Portfolio</a>
+        <a href="internship.html">Internships</a>
+        <a href="mock.html">Mock Interview</a>
+        <a href="careerpath.html" class="active">Career Suggestions</a>
+        <a href="index.html#contact">Contact</a>
+    </nav>
+</header>
+
+<div class="container">
+    <div class="page-header">
+        <h1><i class="fas fa-road"></i> CareerPath Pro</h1>
+        <p>Discover your ideal career path based on your skills or explore requirements for any job role</p>
+    </div>
+
+    <div class="card">
+        <div class="tab-container">
+            <div class="tab active" data-tab="skills-to-career"><i class="fas fa-code"></i> Skills to Career</div>
+            <div class="tab" data-tab="career-to-skills"><i class="fas fa-briefcase"></i> Career to Skills</div>
+        </div>
+
+        <div class="tab-content active" id="skills-to-career">
+            <h2 class="card-title"><i class="fas fa-cogs"></i> Enter Your Skills</h2>
+            <div class="input-group">
+                <label>Add your skills one by one:</label>
+                <div class="tags-input">
+                    <input type="text" id="skill-input" placeholder="Type a skill and press Enter">
+                </div>
+                <div id="skills-container"></div>
+            </div>
+            <button class="btn" id="recommend-btn"><i class="fas fa-search"></i> Recommend Careers</button>
+        </div>
+
+        <div class="tab-content" id="career-to-skills">
+            <h2 class="card-title"><i class="fas fa-user-graduate"></i> Enter a Job Role</h2>
+            <div class="input-group">
+                <label>Type a career path:</label>
+                <input type="text" id="career-input" placeholder="e.g., AI Engineer, Marketing Manager">
+            </div>
+            <button class="btn" id="requirements-btn"><i class="fas fa-list"></i> Show Requirements</button>
+        </div>
+    </div>
+
+    <div class="loading" id="loading"><i class="fas fa-spinner fa-spin"></i><p>Analyzing with AI...</p></div>
+
+    <div class="result-container" id="result-container">
+        <h2 class="result-title" id="result-title">Results</h2>
+        <div id="result-content"></div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const skillInput = document.getElementById('skill-input');
+    const skillsContainer = document.getElementById('skills-container');
+    const recommendBtn = document.getElementById('recommend-btn');
+    const careerInput = document.getElementById('career-input');
+    const requirementsBtn = document.getElementById('requirements-btn');
+    const resultContainer = document.getElementById('result-container');
+    const resultTitle = document.getElementById('result-title');
+    const resultContent = document.getElementById('result-content');
+    const loading = document.getElementById('loading');
+    const tabs = document.querySelectorAll('.tab');
+    const tabContents = document.querySelectorAll('.tab-content');
+
+    let userSkills = [];
+
+    // Add crazy elements on button hover
+    function addCrazyEffects(button) {
+        button.addEventListener('mouseenter', function(e) {
+            // Create particles
+            for(let i = 0; i < 10; i++) {
+                createParticle(e.clientX, e.clientY);
+            }
+            
+            // Create floating element
+            const crazy = document.createElement('div');
+            crazy.className = 'crazy-element';
+            crazy.innerHTML = '<i class="fas fa-star" style="color: var(--neon); font-size: 20px;"></i>';
+            crazy.style.left = (e.clientX - 10) + 'px';
+            crazy.style.top = (e.clientY - 10) + 'px';
+            document.body.appendChild(crazy);
+            
+            // Remove after animation
+            setTimeout(() => {
+                document.body.removeChild(crazy);
+            }, 10000);
+        });
+    }
+    
+    function createParticle(x, y) {
+        const particle = document.createElement('div');
+        particle.className = 'particle';
+        particle.style.left = x + 'px';
+        particle.style.top = y + 'px';
+        document.body.appendChild(particle);
+        
+        // Remove after animation
+        setTimeout(() => {
+            document.body.removeChild(particle);
+        }, 3000);
+    }
+    
+    // Apply crazy effects to buttons
+    addCrazyEffects(recommendBtn);
+    addCrazyEffects(requirementsBtn);
+
+    // Tab switching
+    tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            const tabId = tab.getAttribute('data-tab');
+            tabs.forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+            tabContents.forEach(content => content.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            resultContainer.style.display = 'none';
+        });
+    });
+
+    // Add skill
+    skillInput.addEventListener('keydown', function(e) {
+        if(e.key==='Enter' && this.value.trim()!=='') {
+            addSkill(this.value.trim()); 
+            this.value=''; 
+            e.preventDefault();
+            
+            // Add particle effect
+            const rect = this.getBoundingClientRect();
+            for(let i = 0; i < 5; i++) {
+                createParticle(rect.left + rect.width/2, rect.top + rect.height/2);
+            }
+        }
+    });
+    
+    function addSkill(skill){
+        if(userSkills.includes(skill.toLowerCase())) return;
+        userSkills.push(skill.toLowerCase());
+        const skillElement = document.createElement('div');
+        skillElement.className='tag';
+        skillElement.innerHTML=`${skill} <i class="fas fa-times" data-skill="${skill.toLowerCase()}"></i>`;
+        skillsContainer.appendChild(skillElement);
+        skillElement.querySelector('i').addEventListener('click', function(){
+            const skillToRemove=this.getAttribute('data-skill');
+            userSkills=userSkills.filter(s=>s!==skillToRemove);
+            skillsContainer.removeChild(skillElement);
+        });
+    }
+
+    async function callCareerAI(type, input=null) {
+        const payload = type === "skills-to-career" ? { type, skills: userSkills } : { type, input };
+        const response = await fetch("/career-ai", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+        });
+        if (!response.ok) {
+            const text = await response.text();
+            throw new Error(`Server error: ${text}`);
+        }
+        return await response.json();
+    }
+
+    async function processRequest(type, input) {
+        loading.style.display = "block";
+        resultContainer.style.display = "none";
+        try {
+            const aiResult = await callCareerAI(type, input);
+            loading.style.display = "none";
+            resultContainer.style.display = "block";
+            resultTitle.textContent = type === "skills-to-career" 
+                ? "Career Recommendations" 
+                : `Requirements for ${input}`;
+            
+            // Format output
+            let html = '';
+            if(type === 'skills-to-career') {
+                html += `<p><strong>Best Fit Role:</strong> ${aiResult.best_fit_role}</p>`;
+                html += `<p><strong>Why:</strong> ${aiResult.why}</p>`;
+                html += `<p class="section-title">Responsibilities:</p><ul class="section-list">${aiResult.responsibilities.map(r=>`<li>${r}</li>`).join('')}</ul>`;
+                html += `<p class="section-title">Next Skills:</p><div>${aiResult.next_skills.map(s=>`<span class="skill-badge">${s}</span>`).join('')}</div>`;
+                html += `<p><strong>Growth Path:</strong> ${aiResult.growth_path}</p>`;
+                html += `<p><strong>Average Salary:</strong> ${aiResult.average_salary}</p>`;
+                html += `<p><strong>Industries:</strong> ${aiResult.industries.join(', ')}</p>`;
+                html += `<p class="section-title">Courses:</p><ul class="section-list">${aiResult.courses.map(c=>`<li>${c}</li>`).join('')}</ul>`;
+                html += `<p class="section-title">Top Companies:</p><ul class="section-list">${aiResult.top_companies.map(c=>`<li>${c}</li>`).join('')}</ul>`;
+                html += `<p><strong>Job Type:</strong> ${aiResult.job_type}</p>`;
+                html += `<p><strong>Entry Experience:</strong> ${aiResult.entry_experience}</p>`;
+            } else {
+                html += `<p><strong>Role:</strong> ${aiResult.role}</p>`;
+                html += `<p><strong>Overview:</strong> ${aiResult.overview}</p>`;
+                html += `<p><strong>Required Degree:</strong> ${aiResult.required_degree}</p>`;
+                html += `<p class="section-title">Required Skills:</p><div>${aiResult.required_skills.map(s=>`<span class="skill-badge">${s}</span>`).join('')}</div>`;
+                html += `<p class="section-title">Soft Skills:</p><div>${aiResult.soft_skills.map(s=>`<span class="skill-badge">${s}</span>`).join('')}</div>`;
+                html += `<p><strong>Career Progression:</strong> ${aiResult.career_progression}</p>`;
+                html += `<p><strong>Average Salary:</strong> ${aiResult.average_salary}</p>`;
+                html += `<p><strong>Industries:</strong> ${aiResult.industries.join(', ')}</p>`;
+                html += `<p class="section-title">Certifications:</p><ul class="section-list">${aiResult.certifications.map(c=>`<li>${c}</li>`).join('')}</ul>`;
+                html += `<p class="section-title">Top Companies:</p><ul class="section-list">${aiResult.top_companies.map(c=>`<li>${c}</li>`).join('')}</ul>`;
+            }
+            resultContent.innerHTML = html;
+
+        } catch(err) {
+            loading.style.display = "none";
+            resultContainer.style.display = "block";
+            resultContent.innerHTML = `<div class="error-message">
+                <h4>Error</h4>
+                <p>${err.message}</p>
+            </div>`;
+        }
+    }
+
+    recommendBtn.addEventListener('click', ()=>{ 
+        if(userSkills.length===0){ 
+            alert('Please add at least one skill'); 
+            return;
+        }
+        processRequest('skills-to-career');
+    });
+
+    requirementsBtn.addEventListener('click', ()=>{
+        if(careerInput.value.trim()===''){ 
+            alert('Please enter a job role'); 
+            return;
+        }
+        processRequest('career-to-skills', careerInput.value.trim());
+    });
+});
+</script>
+</body>
+</html>
+
+

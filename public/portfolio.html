@@ -1,0 +1,1956 @@
+<!DOCTYPE html> 
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Professional Portfolio Generator | CareerCrate</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&family=Roboto+Mono:wght@300;400;500&family=Poppins:wght@300;400;500;600;700&family=Open+Sans:wght@300;400;500;600;700&family=Montserrat:wght@400;500;600;700&family=Raleway:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
+<style>
+:root {
+  --primary-color: #3498db;
+  --secondary-color: #2c3e50;
+  --accent-color: #e74c3c;
+  --text-color: #333;
+  --footer-color: #2c3e50;
+  --light-bg: #f9f9f9;
+  --card-bg: #fff;
+  --font-main: 'Inter', sans-serif;
+  --font-headings: 'Playfair Display', serif;
+  --sidebar-width: 320px;
+  --border-radius: 8px;
+  --transition: all 0.3s ease;
+  --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  --shadow-hover: 0 10px 15px rgba(0, 0, 0, 0.1);
+  --portfolio-bg: #ffffff;
+  --primary: #6c63ff;
+  --secondary: #4f46e5;
+  --accent: #a78bfa;
+  --light: #f8fafc;
+  --dark: #1e293b;
+  --dark-color: #1e293b;
+}
+
+/* reset + base */
+* { margin:0; padding:0; box-sizing:border-box; font-family: var(--font-main); }
+body { background-color: #fafafa; color: var(--text-color); overflow-x: hidden; }
+
+/* Header */
+header {
+  background: white;
+  border-bottom: 1px solid rgba(0,0,0,0.08);
+  padding: 1rem 2rem;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  position: fixed;
+  width:100%;
+  top:0;
+  z-index:1000;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+.logo { display:flex; align-items:center; gap:10px; }
+.logo-img { height:70px; width:250px; background:#f0f0f0; border-radius:4px; display:flex; align-items:center; justify-content:center; color:#666; font-size:14px; }
+nav { display:flex; gap:1.5rem; align-items:center; }
+nav a { color:var(--dark); text-decoration:none; font-weight:600; padding:0.5rem 0; font-size:0.95rem; }
+nav a:hover { color: var(--primary); }
+nav a.active { color: var(--primary); }
+
+/* Layout */
+.container { display:flex; min-height:100vh; margin-top:90px; }
+
+/* Sidebar */
+.sidebar {
+  width: var(--sidebar-width);
+  background: linear-gradient(135deg, var(--secondary-color) 0%, #1a2530 100%);
+  color:white;
+  padding:25px 20px;
+  overflow-y:auto;
+  box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+}
+.sidebar h2 { margin-bottom:25px; padding-bottom:15px; border-bottom:2px solid var(--primary-color); font-family:var(--font-headings); font-weight:600; font-size:1.5rem; text-align:center; }
+.sidebar-section { margin-bottom:25px; background: rgba(255,255,255,0.05); border-radius: var(--border-radius); padding:15px; }
+.sidebar-section h3 { display:flex; align-items:center; gap:10px; margin-bottom:15px; font-size:1.1rem; font-weight:500; color:#e0e0e0; }
+.form-group { margin-bottom:15px; }
+.form-group label { display:block; font-size:0.85rem; margin-bottom:6px; color:#b0b0b0; font-weight:500; }
+.form-group input, .form-group textarea, .form-group select { width:100%; padding:10px 12px; border:1px solid rgba(255,255,255,0.1); border-radius:6px; background: rgba(255,255,255,0.08); color:white; font-family:inherit; transition:var(--transition); }
+.form-group input:focus, .form-group textarea:focus, .form-group select:focus { outline:none; border-color:var(--primary-color); background: rgba(255,255,255,0.12); box-shadow: 0 0 0 2px rgba(52,152,219,0.12); }
+.form-group textarea { min-height:80px; resize:vertical; }
+.btn { background: var(--primary-color); color:white; padding:10px 15px; border:none; border-radius:6px; cursor:pointer; font-weight:500; transition:var(--transition); display:flex; align-items:center; gap:8px; }
+.btn-full { width:100%; }
+.btn-small { padding: 6px 12px; font-size: 0.85rem; }
+
+/* Sidebar templates */
+.sidebar-templates {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.sidebar-templates .template-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: rgba(255,255,255,0.08);
+  border-radius: 6px;
+  padding: 10px;
+  cursor: pointer;
+  transition: var(--transition);
+  text-align: center;
+}
+
+.sidebar-templates .template-card:hover {
+  background: rgba(255,255,255,0.15);
+  transform: translateY(-2px);
+}
+
+.sidebar-templates .template-card.active {
+  border: 2px solid var(--primary-color);
+  background: rgba(255,255,255,0.2);
+}
+
+.sidebar-templates .template-preview {
+  width: 100%;
+  height: 60px;
+  border-radius: 6px;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.sidebar-templates .template-info h3 {
+  font-size: 0.8rem;
+  margin: 0;
+  color: #fff;
+}
+
+.sidebar-templates .template-info p {
+  font-size: 0.65rem;
+  color: #ccc;
+  margin: 2px 0 0;
+}
+
+/* Main */
+.main-content { flex:1; display:flex; flex-direction:column; transition:var(--transition); }
+.toolbar { background:white; padding:15px 25px; display:flex; justify-content:space-between; align-items:center; gap:15px; box-shadow:0 2px 10px rgba(0,0,0,0.08); z-index:5; flex-wrap:wrap; }
+.toolbar h1 { font-family:var(--font-headings); font-weight:600; color:var(--secondary-color); font-size:1.5rem; }
+.toolbar-controls { display:flex; align-items:center; gap:20px; flex-wrap:wrap; }
+
+/* color/font/bg controls */
+.color-picker { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+.color-picker label { font-size:0.85rem; font-weight:500; color:var(--secondary-color); }
+.color-input { width:30px; height:30px; border-radius:50%; border:none; cursor:pointer; }
+.font-selector, .bg-selector { display:flex; gap:10px; align-items:center; }
+.font-selector label, .bg-selector label { font-size:0.85rem; font-weight:500; color:var(--secondary-color); }
+.font-selector select, .bg-selector select { padding:8px 12px; border:1px solid #ddd; border-radius:6px; background:white; color:var(--text-color); }
+
+/* preview */
+.preview-container { flex:1; padding:25px; overflow:auto; background:#f5f7fa; display:flex; justify-content:center; align-items:flex-start; }
+.portfolio-preview { width:100%; max-width:1000px; background:var(--portfolio-bg); box-shadow:var(--shadow); border-radius:12px; overflow:hidden; transition:var(--transition); }
+
+/* Base portfolio styles - Using CSS Variables */
+.portfolio-header { background: linear-gradient(135deg, var(--primary-color) 0%, #2c79c1 100%); color:white; text-align:center; padding:60px 20px; position:relative; overflow:hidden; }
+.portfolio-header h1 { font-family:var(--font-headings); font-size:2.8rem; font-weight:700; margin-bottom:10px; z-index:1; }
+.portfolio-header p { font-size:1.3rem; opacity:0.9; z-index:1; }
+.portfolio-nav { background: var(--secondary-color); padding:0; }
+.portfolio-nav ul { list-style:none; display:flex; justify-content:center; gap:0; }
+.portfolio-nav li { flex:1; text-align:center; }
+.portfolio-nav a { color:white; text-decoration:none; font-weight:500; padding:15px 20px; display:block; transition:var(--transition); border-bottom:3px solid transparent; }
+.portfolio-section { padding:40px 30px; }
+.section-title { text-align:center; margin-bottom:30px; color:var(--accent-color); font-family:var(--font-headings); font-size:2rem; font-weight:600; padding-bottom:15px; position:relative; }
+.section-title::after { content:''; position:absolute; bottom:0; left:50%; transform:translateX(-50%); width:60px; height:3px; background:var(--accent-color); }
+
+.about-content { display:flex; gap:30px; align-items:center; justify-content:center; max-width:800px; margin:0 auto; }
+.profile-image { width:200px; height:200px; border-radius:50%; object-fit:cover; border:5px solid var(--primary-color); box-shadow:var(--shadow); flex-shrink:0; }
+.about-content p { font-size:1.1rem; line-height:1.7; }
+
+.skills-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(120px,1fr)); gap:15px; max-width:800px; margin:0 auto; }
+.skill-card { background:var(--light-bg); padding:15px 10px; text-align:center; border-radius:var(--border-radius); transition:var(--transition); font-weight:500; box-shadow:0 2px 4px rgba(0,0,0,0.05); }
+.skill-card:hover { transform:translateY(-5px); box-shadow:var(--shadow); background:var(--primary-color); color:white; }
+
+.projects-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:25px; max-width:1000px; margin:0 auto; }
+.project-card { border:1px solid #eaeaea; border-radius:var(--border-radius); overflow:hidden; background:white; transition:var(--transition); box-shadow:0 3px 6px rgba(0,0,0,0.05); }
+.project-card img { width:100%; height:180px; object-fit:cover; transition:var(--transition); }
+.project-card-content { padding:20px; }
+.project-card h3 { margin-bottom:10px; font-size:1.3rem; font-weight:600; color:var(--secondary-color); }
+.project-card p { margin-bottom:15px; color:#666; line-height:1.5; }
+
+.certificates-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:20px; max-width:900px; margin:0 auto; }
+.certificate-item { border-radius:var(--border-radius); overflow:hidden; box-shadow:0 3px 6px rgba(0,0,0,0.1); }
+.contact-info { display:flex; flex-direction:column; align-items:center; gap:15px; max-width:600px; margin:0 auto; }
+.contact-item { display:flex; align-items:center; gap:15px; padding:12px 20px; background:var(--light-bg); border-radius:var(--border-radius); width:100%; transition:var(--transition); }
+.contact-item i { color:var(--primary-color); font-size:1.2rem; width:24px; }
+
+.portfolio-footer { background: var(--footer-color); color:white; text-align:center; padding:20px; font-size:0.9rem; }
+
+/* Social Media Links */
+.social-links { display: flex; justify-content: center; gap: 15px; margin-top: 20px; }
+.social-link { display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 50%; background: var(--primary-color); color: white; text-decoration: none; transition: var(--transition); }
+.social-link:hover { transform: translateY(-3px); background: var(--accent-color); }
+
+/* Custom Sections */
+.custom-section { margin-bottom: 40px; }
+.custom-section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+.custom-section-content { background: var(--light-bg); padding: 20px; border-radius: var(--border-radius); }
+
+/* Background utility classes */
+.bg-white { background:#ffffff !important; }
+.bg-light-gray { background:#f8f9fa !important; }
+.bg-light-blue { background:#f0f8ff !important; }
+.bg-light-green { background:#f0fff4 !important; }
+.bg-light-yellow { background:#fffaf0 !important; }
+.bg-light-purple { background:#f8f0ff !important; }
+.bg-pattern-1 { background: linear-gradient(135deg,#f5f7fa 0%,#c3cfe2 100%) !important; }
+.bg-pattern-2 { background: linear-gradient(135deg,#a1c4fd 0%,#c2e9fb 100%) !important; }
+.bg-pattern-3 { background: linear-gradient(135deg,#d4fc79 0%,#96e6a1 100%) !important; }
+.bg-pattern-4 { background: linear-gradient(135deg,#fbc2eb 0%,#a6c1ee 100%) !important; }
+.bg-pattern-5 { background: linear-gradient(135deg,#fad0c4 0%,#ffd1ff 100%) !important; }
+
+/* Cyberpunk Animations */
+@keyframes gridMove {
+  0% { transform: translate(0, 0); }
+  100% { transform: translate(50px, 50px); }
+}
+
+/* 80s Gradient Animation */
+@keyframes gradientShift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* Space Galaxy Stars */
+.stars {
+  background-image: 
+    radial-gradient(2px 2px at 20px 30px, #eee, transparent),
+    radial-gradient(2px 2px at 40px 70px, #fff, transparent),
+    radial-gradient(1px 1px at 90px 40px, #fff, transparent);
+  background-size: 200px 200px;
+}
+
+.twinkling {
+  background-image: 
+    radial-gradient(1px 1px at 60px 100px, #fff, transparent),
+    radial-gradient(1px 1px at 120px 80px, #fff, transparent),
+    radial-gradient(1px 1px at 180px 120px, #fff, transparent);
+  background-size: 300px 300px;
+  animation: twinkle 4s ease-in-out infinite alternate;
+}
+
+@keyframes twinkle {
+  0% { opacity: 0.2; }
+  100% { opacity: 0.8; }
+}
+
+/* Responsive */
+@media (max-width:1024px) {
+  .container { flex-direction:column; }
+  .sidebar { width:100%; max-height:50vh; }
+  .template-3 { grid-template-columns: 1fr; }
+  .template-gallery { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width:768px) {
+  .toolbar { flex-direction:column; align-items:flex-start; }
+  .portfolio-preview { max-width:100%; }
+  .projects-grid { grid-template-columns:1fr; }
+  .template-gallery { grid-template-columns: 1fr; }
+  .sidebar-templates { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+<header>
+ <div class="logo">
+      <img src="Screenshot 2025-07-13 141234.png" alt="CareerCrate Logo" class="logo-img">
+    </div>
+  <nav class="navbar">
+    <a href="index.html">Home</a>
+    <a href="index.html#features">Features</a>
+    <a href="resume.html">Resume</a>
+    <a href="portfolio.html" class="active">Portfolio</a>
+    <a href="internship.html">Internships</a>
+    <a href="mock.html">Mock Interview</a>
+     <a href="carrerpath.html">Career Suggestions</a>
+    <a href="index.html#contact">Contact</a>
+  </nav>
+</header>
+
+<div class="container">
+  <aside class="sidebar">
+    <h2>Portfolio Customizer</h2>
+
+    <!-- Templates Section -->
+    <div class="sidebar-section">
+      <h3><i class="fas fa-paint-brush"></i> Templates</h3>
+      <div id="templateGallery" class="sidebar-templates"></div>
+    </div>
+
+    <!-- Profile Section -->
+    <div class="sidebar-section">
+      <h3><i class="fas fa-user"></i> Profile</h3>
+      <div class="form-group">
+        <label>Full Name</label>
+        <input type="text" id="fullName" value="Siddhi Naik">
+      </div>
+      <div class="form-group">
+        <label>Profession</label>
+        <input type="text" id="profession" value="Web Developer">
+      </div>
+      <div class="form-group">
+        <label>Bio</label>
+        <textarea id="bio">Passionate developer with extensive experience in web and mobile application development. I love creating user-friendly interfaces and solving complex problems with elegant code.</textarea>
+      </div>
+      <div class="form-group">
+        <label>Profile Image</label>
+        <input type="file" id="profileImage" accept="image/*">
+      </div>
+    </div>
+
+    <!-- Social Media Section -->
+    <div class="sidebar-section">
+      <h3><i class="fas fa-share-alt"></i> Social Media</h3>
+      <div id="socialMediaContainer"></div>
+      <button class="btn btn-full" onclick="addSocialMedia()"><i class="fas fa-plus"></i> Add Social Media</button>
+    </div>
+
+    <!-- Custom Sections -->
+    <div class="sidebar-section">
+      <h3><i class="fas fa-plus-circle"></i> Custom Sections</h3>
+      <div id="customSectionsContainer"></div>
+      <button class="btn btn-full" onclick="addCustomSection()"><i class="fas fa-plus"></i> Add Custom Section</button>
+    </div>
+
+    <!-- Projects Section -->
+    <div class="sidebar-section">
+      <h3><i class="fas fa-briefcase"></i> Projects</h3>
+      <div id="projectsContainer"></div>
+      <button class="btn btn-full" onclick="addProject()"><i class="fas fa-plus"></i> Add Project</button>
+    </div>
+
+    <!-- Certificates Section -->
+    <div class="sidebar-section">
+      <h3><i class="fas fa-certificate"></i> Certificates</h3>
+      <div id="certificatesContainer"></div>
+      <button class="btn btn-full" onclick="addCertificate()"><i class="fas fa-plus"></i> Add Certificate</button>
+    </div>
+
+    <!-- Skills Section -->
+    <div class="sidebar-section">
+      <h3><i class="fas fa-code"></i> Skills</h3>
+      <div id="skillsContainer"></div>
+      <button class="btn btn-full" onclick="addSkill()"><i class="fas fa-plus"></i> Add Skill</button>
+    </div>
+
+    <!-- Contact Section -->
+    <div class="sidebar-section">
+      <h3><i class="fas fa-envelope"></i> Contact</h3>
+      <div id="contactContainer"></div>
+      <button class="btn btn-full" onclick="addContact()"><i class="fas fa-plus"></i> Add Contact</button>
+    </div>
+
+  </aside>
+
+  <main class="main-content">
+    <div class="toolbar">
+      <h1>Portfolio Generator</h1>
+      <div class="toolbar-controls">
+        <div class="color-picker">
+          <label>Primary</label>
+          <input type="color" class="color-input" value="#3498db" onchange="setColor('--primary-color',this.value)">
+          <label>Accent</label>
+          <input type="color" class="color-input" value="#e74c3c" onchange="setColor('--accent-color',this.value)">
+          <label>Text</label>
+          <input type="color" class="color-input" value="#333333" onchange="setColor('--text-color',this.value)">
+          <label>Footer</label>
+          <input type="color" class="color-input" value="#2c3e50" onchange="setColor('--footer-color',this.value)">
+        </div>
+
+        <div class="font-selector">
+          <label>Font:</label>
+          <select id="fontSelector" onchange="changeFont(this.value)">
+            <option value="Inter, sans-serif">Inter</option>
+            <option value="Poppins, sans-serif">Poppins</option>
+            <option value="Open Sans, sans-serif">Open Sans</option>
+            <option value="'Playfair Display', serif">Playfair Display</option>
+            <option value="'Roboto Mono', monospace">Roboto Mono</option>
+            <option value="Montserrat, sans-serif">Montserrat</option>
+            <option value="Raleway, sans-serif">Raleway</option>
+          </select>
+        </div>
+
+        <div class="bg-selector">
+          <label>BG:</label>
+          <select id="bgSelector" onchange="changeBackground(this.value)">
+            <option value="bg-white">White</option>
+            <option value="bg-light-gray">Light Gray</option>
+            <option value="bg-light-blue">Light Blue</option>
+            <option value="bg-light-green">Light Green</option>
+            <option value="bg-light-yellow">Light Yellow</option>
+            <option value="bg-light-purple">Light Purple</option>
+            <option value="bg-pattern-1">Blue Gradient</option>
+            <option value="bg-pattern-2">Sky Gradient</option>
+            <option value="bg-pattern-3">Green Gradient</option>
+            <option value="bg-pattern-4">Purple Gradient</option>
+            <option value="bg-pattern-5">Pink Gradient</option>
+          </select>
+        </div>
+
+        <button class="btn" onclick="openInNewTab()"><i class="fas fa-external-link-alt"></i> Open in New Tab</button>
+        <button class="btn" onclick="hostPortfolio()">
+    <i class="fas fa-cloud-upload-alt"></i> Host Portfolio
+  </button>
+
+      </div>
+    </div>
+
+    <div class="preview-container">
+      <div class="portfolio-preview" id="portfolioPreview"></div>
+    </div>
+  </main>
+</div>
+
+<script>
+// Firebase configuration - REPLACE WITH YOUR ACTUAL FIREBASE CONFIG
+const firebaseConfig = {
+ apiKey: "AIzaSyCMTlja4NrE4Cv3_Cv79pRDEykQt8lW1XI",
+  authDomain: "carrercrate.firebaseapp.com",
+  projectId: "carrercrate",
+  storageBucket: "carrercrate.firebasestorage.app",
+  messagingSenderId: "312167069617",
+  appId: "1:312167069617:web:a22835b5c4e45c61396f90"
+};
+
+
+// Initialize Firebase
+try {
+  firebase.initializeApp(firebaseConfig);
+} catch (error) {
+  console.log("Firebase already initialized or config missing");
+}
+const db = firebase.firestore();
+
+/* -------------------------
+   Data & helpers
+   ------------------------- */
+const preview = document.getElementById("portfolioPreview");
+const templateGallery = document.getElementById("templateGallery");
+
+let profileImage = "";
+let projects = [
+  {id: 1, title: "Portfolio Website", desc: "Personal portfolio built with HTML, CSS, and JavaScript featuring a responsive design and interactive elements.", image: "", url: "#"}
+];
+let certificates = [{id: 1, name: "Web Development Certificate", issuer: "Online Course Platform", date: "2023", image: "", url: ""}];
+let skills = [
+  {id: 1, name: "HTML5"},
+  {id: 2, name: "CSS3"},
+  {id: 3, name: "JavaScript"},
+  {id: 4, name: "React"},
+  {id: 5, name: "Node.js"}
+];
+let contacts = [
+  {id: 1, info: "Siddhi.naik@example.com", type: "email"},
+  {id: 2, info: "+1 (555) 123-4567", type: "phone"}
+];
+let socialMedia = [
+  {id: 1, platform: "linkedin", url: "https://linkedin.com/in/siddhi"},
+  {id: 2, platform: "github", url: "https://github.com/siddhi"},
+  {id: 3, platform: "twitter", url: "https://twitter.com/siddhi"}
+];
+let customSections = [
+  {id: 1, title: "Experience", content: "5+ years of web development experience", position: 3}
+];
+
+// Template descriptions for the gallery
+const templateDescriptions = {
+  "template-1": "Modern design with gradient header and clean layout",
+  "template-2": "Minimalist approach with focus on content",
+  "template-3": "Sidebar profile layout for a classic look",
+  "template-4": "Bold header with full-width sections",
+  "template-5": "Creative grid layout for visual projects",
+  "template-6": "Dark theme for a sleek, modern appearance",
+  "template-7": "Professional corporate style",
+  "template-8": "Colorful and artistic design",
+  "template-9": "Tech-focused minimal design",
+  "template-10": "Elegant layout with sophisticated styling"
+};
+
+function readImage(input, cb) {
+  if (input.files && input.files[0]) {
+    const reader = new FileReader();
+    reader.onload = e => cb(e.target.result);
+    reader.readAsDataURL(input.files[0]);
+  }
+}
+
+/* -------------------------
+   Template Gallery
+   ------------------------- */
+function renderTemplateGallery() {
+  const templates = [
+    { id: "template-1", name: "Modern", color: "#3498db" },
+    { id: "template-2", name: "Minimalist", color: "#2c3e50" },
+    { id: "template-3", name: "Cyberpunk", color: "#e74c3c" },
+    { id: "template-4", name: "Asymmetric", color: "#9b59b6" },
+    { id: "template-5", name: "Creative", color: "#ff9a9e" },
+    { id: "template-6", name: "Retro", color: "#0b0b0b" },
+    { id: "template-7", name: "Space", color: "#2c3e50" },
+    { id: "template-8", name: "Glass", color: "#ff6b6b" },
+    { id: "template-9", name: "Tech", color: "#495057" },
+    { id: "template-10", name: "Elegant", color: "#8e44ad" }
+  ];
+
+  templateGallery.innerHTML = templates.map(template => `
+    <div class="template-card" data-template="${template.id}" onclick="selectTemplate('${template.id}')">
+      <div class="template-preview" style="background: linear-gradient(135deg, ${template.color}, ${adjustColor(template.color, -20)})">
+        ${template.name}
+      </div>
+      <div class="template-info">
+        <h3>${template.name}</h3>
+        <p>${templateDescriptions[template.id]}</p>
+      </div>
+    </div>
+  `).join("");
+}
+
+function selectTemplate(templateId) {
+  // Update the template selector
+  document.querySelectorAll(".template-card").forEach(card => {
+    card.classList.toggle("active", card.dataset.template === templateId);
+  });
+  
+  // Update preview
+  updatePreview();
+}
+
+function adjustColor(color, amount) {
+  // Simple function to adjust color brightness
+  return '#' + color.replace(/^#/, '').replace(/../g, color => 
+    ('0' + Math.min(255, Math.max(0, parseInt(color, 16) + amount)).toString(16)).substr(-2)
+  );
+}
+
+/* -------------------------
+   Add/remove items & render inputs
+   ------------------------- */
+function addProject() {
+  projects.push({id: Date.now(), title: "New Project", desc: "Project description...", image: "", url: ""});
+  renderInputs(); updatePreview();
+}
+
+function addCertificate() {
+  certificates.push({id: Date.now(), name: "New Certificate", issuer: "Issuing Organization", date: "2023", image: "", url: ""});
+  renderInputs(); updatePreview();
+}
+
+function addSkill() {
+  skills.push({id: Date.now(), name: "New Skill"});
+  renderInputs(); updatePreview();
+}
+
+function addContact() {
+  contacts.push({id: Date.now(), info: "New contact", type: "other"});
+  renderInputs(); updatePreview();
+}
+
+function addSocialMedia() {
+  socialMedia.push({id: Date.now(), platform: "linkedin", url: ""});
+  renderInputs(); updatePreview();
+}
+
+function addCustomSection() {
+  customSections.push({id: Date.now(), title: "New Section", content: "Section content...", position: customSections.length + 3});
+  renderInputs(); updatePreview();
+}
+
+function removeCustomSection(id) {
+  customSections = customSections.filter(section => section.id !== id);
+  renderInputs(); updatePreview();
+}
+
+function renderInputs() {
+  document.getElementById("projectsContainer").innerHTML = projects.map(p => `
+    <div class="form-group">
+      <input type="text" placeholder="Project Title" value="${escapeHtml(p.title)}" onchange="updateProject(${p.id},'title',this.value)">
+      <textarea placeholder="Project Description" onchange="updateProject(${p.id},'desc',this.value)">${escapeHtml(p.desc)}</textarea>
+      <input type="file" onchange="uploadProjectImage(${p.id},this)" accept="image/*">
+      <input type="text" placeholder="Project URL" value="${escapeHtml(p.url)}" onchange="updateProject(${p.id},'url',this.value)">
+      <button class="btn btn-small" onclick="removeProject(${p.id})"><i class="fas fa-trash"></i> </button>
+    </div>`).join("");
+
+  document.getElementById("certificatesContainer").innerHTML = certificates.map(c => `
+    <div class="form-group">
+      <input type="text" placeholder="Certificate Name" value="${escapeHtml(c.name)}" onchange="updateCertificate(${c.id},'name',this.value)">
+      <input type="text" placeholder="Issuer" value="${escapeHtml(c.issuer)}" onchange="updateCertificate(${c.id},'issuer',this.value)">
+      <input type="text" placeholder="Date" value="${escapeHtml(c.date)}" onchange="updateCertificate(${c.id},'date',this.value)">
+      <input type="file" onchange="uploadCertificate(${c.id},this)" accept="image/*">
+      <input type="text" placeholder="Certificate URL" value="${escapeHtml(c.url)}" onchange="updateCertificate(${c.id},'url',this.value)">
+      <button class="btn btn-small" onclick="removeCertificate(${c.id})"><i class="fas fa-trash"></i> </button>
+    </div>`).join("");
+
+  document.getElementById("skillsContainer").innerHTML = skills.map(s => `
+    <div class="form-group">
+      <input type="text" value="${escapeHtml(s.name)}" placeholder="Skill Name" onchange="updateSkill(${s.id},this.value)">
+      <button class="btn btn-small" onclick="removeSkill(${s.id})"><i class="fas fa-trash"></i> </button>
+    </div>`).join("");
+
+  document.getElementById("contactContainer").innerHTML = contacts.map(c => `
+    <div class="form-group">
+      <input type="text" value="${escapeHtml(c.info)}" placeholder="Contact Info" onchange="updateContact(${c.id},this.value)">
+      <select onchange="updateContactType(${c.id},this.value)">
+        <option value="email" ${c.type === 'email' ? 'selected' : ''}>Email</option>
+        <option value="phone" ${c.type === 'phone' ? 'selected' : ''}>Phone</option>
+        <option value="location" ${c.type === 'location' ? 'selected' : ''}>Location</option>
+        <option value="other" ${c.type === 'other' ? 'selected' : ''}>Other</option>
+      </select>
+      <button class="btn btn-small" onclick="removeContact(${c.id})"><i class="fas fa-trash"></i></button>
+    </div>`).join("");
+
+  document.getElementById("socialMediaContainer").innerHTML = socialMedia.map(s => `
+    <div class="form-group">
+      <select onchange="updateSocialMediaPlatform(${s.id},this.value)">
+        <option value="linkedin" ${s.platform === 'linkedin' ? 'selected' : ''}>LinkedIn</option>
+        <option value="github" ${s.platform === 'github' ? 'selected' : ''}>GitHub</option>
+        <option value="twitter" ${s.platform === 'twitter' ? 'selected' : ''}>Twitter</option>
+        <option value="facebook" ${s.platform === 'facebook' ? 'selected' : ''}>Facebook</option>
+        <option value="instagram" ${s.platform === 'instagram' ? 'selected' : ''}>Instagram</option>
+        <option value="youtube" ${s.platform === 'youtube' ? 'selected' : ''}>YouTube</option>
+        <option value="behance" ${s.platform === 'behance' ? 'selected' : ''}>Behance</option>
+        <option value="dribbble" ${s.platform === 'dribbble' ? 'selected' : ''}>Dribbble</option>
+      </select>
+      <input type="text" value="${escapeHtml(s.url)}" placeholder="Profile URL" onchange="updateSocialMediaUrl(${s.id},this.value)">
+      <button class="btn btn-small" onclick="removeSocialMedia(${s.id})"><i class="fas fa-trash"></i></button>
+    </div>`).join("");
+
+  document.getElementById("customSectionsContainer").innerHTML = customSections.map(s => `
+    <div class="form-group">
+      <input type="text" value="${escapeHtml(s.title)}" placeholder="Section Title" onchange="updateCustomSection(${s.id},'title',this.value)">
+      <textarea placeholder="Section Content" onchange="updateCustomSection(${s.id},'content',this.value)">${escapeHtml(s.content)}</textarea>
+      <select onchange="updateCustomSection(${s.id},'position',this.value)">
+        <option value="1" ${s.position === 1 ? 'selected' : ''}>After About</option>
+        <option value="2" ${s.position === 2 ? 'selected' : ''}>After Skills</option>
+        <option value="3" ${s.position === 3 ? 'selected' : ''}>After Projects</option>
+        <option value="4" ${s.position === 4 ? 'selected' : ''}>After Certificates</option>
+        <option value="5" ${s.position === 5 ? 'selected' : ''}>Before Contact</option>
+      </select>
+      <button class="btn btn-small" onclick="removeCustomSection(${s.id})"><i class="fas fa-trash"></i> </button>
+    </div>`).join("");
+}
+
+renderInputs();
+renderTemplateGallery();
+
+/* -------------------------
+   Update functions
+   ------------------------- */
+function updateProject(id, field, val) {
+  const p = projects.find(x => x.id === id);
+  if (p) p[field] = val;
+  updatePreview();
+}
+
+function removeProject(id) {
+  projects = projects.filter(project => project.id !== id);
+  renderInputs(); updatePreview();
+}
+
+function uploadProjectImage(id, input) {
+  readImage(input, img => {
+    const p = projects.find(x => x.id === id);
+    if (p) p.image = img;
+    updatePreview();
+  });
+}
+
+function updateCertificate(id, field, val) {
+  const c = certificates.find(x => x.id === id);
+  if (c) c[field] = val;
+  updatePreview();
+}
+
+function removeCertificate(id) {
+  certificates = certificates.filter(cert => cert.id !== id);
+  renderInputs(); updatePreview();
+}
+
+function uploadCertificate(id, input) {
+  readImage(input, img => {
+    const c = certificates.find(x => x.id === id);
+    if (c) c.image = img;
+    updatePreview();
+  });
+}
+
+function updateSkill(id, val) {
+  const s = skills.find(x => x.id === id);
+  if (s) s.name = val;
+  updatePreview();
+}
+
+function removeSkill(id) {
+  skills = skills.filter(skill => skill.id !== id);
+  renderInputs(); updatePreview();
+}
+
+function updateContact(id, val) {
+  const c = contacts.find(x => x.id === id);
+  if (c) c.info = val;
+  updatePreview();
+}
+
+function removeContact(id) {
+  contacts = contacts.filter(contact => contact.id !== id);
+  renderInputs(); updatePreview();
+}
+
+function updateContactType(id, type) {
+  const c = contacts.find(x => x.id === id);
+  if (c) c.type = type;
+  updatePreview();
+}
+
+function updateSocialMediaPlatform(id, platform) {
+  const s = socialMedia.find(x => x.id === id);
+  if (s) s.platform = platform;
+  updatePreview();
+}
+
+function updateSocialMediaUrl(id, url) {
+  const s = socialMedia.find(x => x.id === id);
+  if (s) s.url = url;
+  updatePreview();
+}
+
+function removeSocialMedia(id) {
+  socialMedia = socialMedia.filter(sm => sm.id !== id);
+  renderInputs(); updatePreview();
+}
+
+function updateCustomSection(id, field, val) {
+  const s = customSections.find(x => x.id === id);
+  if (s) s[field] = val;
+  updatePreview();
+}
+
+function getContactIcon(type) {
+  switch(type) {
+    case 'email': return 'fas fa-envelope';
+    case 'phone': return 'fas fa-phone';
+    case 'location': return 'fas fa-map-marker-alt';
+    default: return 'fas fa-info-circle';
+  }
+}
+
+function getSocialMediaIcon(platform) {
+  switch(platform) {
+    case 'linkedin': return 'fab fa-linkedin-in';
+    case 'github': return 'fab fa-github';
+    case 'twitter': return 'fab fa-twitter';
+    case 'facebook': return 'fab fa-facebook-f';
+    case 'instagram': return 'fab fa-instagram';
+    case 'youtube': return 'fab fa-youtube';
+    case 'behance': return 'fab fa-behance';
+    case 'dribbble': return 'fab fa-dribbble';
+    default: return 'fas fa-share-alt';
+  }
+}
+
+/* -------------------------
+   Inputs events
+   ------------------------- */
+document.getElementById("fullName").oninput = updatePreview;
+document.getElementById("profession").oninput = updatePreview;
+document.getElementById("bio").oninput = updatePreview;
+document.getElementById("profileImage").onchange = function() {
+  readImage(this, img => { profileImage = img; updatePreview(); });
+};
+
+/* -------------------------
+   Styling helpers
+   ------------------------- */
+function setColor(varName, val) {
+  document.documentElement.style.setProperty(varName, val);
+  updatePreview();
+}
+
+function changeFont(font) {
+  document.documentElement.style.setProperty('--font-main', font);
+  updatePreview();
+}
+
+function changeBackground(bgClass) {
+  const bgClasses = ['bg-white','bg-light-gray','bg-light-blue','bg-light-green','bg-light-yellow','bg-light-purple','bg-pattern-1','bg-pattern-2','bg-pattern-3','bg-pattern-4','bg-pattern-5'];
+  preview.classList.remove(...bgClasses);
+  preview.classList.add(bgClass);
+}
+
+/* -------------------------
+   Templates rendering - FIXED WITH CSS VARIABLES
+   ------------------------- */
+function updatePreview() {
+  const name = document.getElementById("fullName").value || "Your Name";
+  const prof = document.getElementById("profession").value || "Your Profession";
+  const bio = document.getElementById("bio").value || "";
+
+  // Get active template
+  const activeTemplateCard = document.querySelector(".template-card.active");
+  const template = activeTemplateCard ? activeTemplateCard.dataset.template : "template-1";
+
+  // Get current CSS variable values
+  const primaryColor = getComputedStyle(document.documentElement).getPropertyValue('--primary-color').trim();
+  const accentColor = getComputedStyle(document.documentElement).getPropertyValue('--accent-color').trim();
+  const textColor = getComputedStyle(document.documentElement).getPropertyValue('--text-color').trim();
+  const footerColor = getComputedStyle(document.documentElement).getPropertyValue('--footer-color').trim();
+  const secondaryColor = getComputedStyle(document.documentElement).getPropertyValue('--secondary-color').trim();
+
+  // Clear any previous template classes
+  preview.className = "portfolio-preview " + template;
+
+  // Build different HTML for each template
+  let html = "";
+
+  // Common section rendering function
+  function renderSections() {
+    let sections = [];
+    
+    // About section
+    sections.push({
+      id: "about",
+      title: "About Me",
+      content: `
+        <div class="about-content">
+          ${profileImage ? `<img src="${profileImage}" class="profile-image" alt="${escapeHtml(name)}">` : ""}
+          <p>${escapeHtml(bio)}</p>
+        </div>
+      `,
+      position: 1
+    });
+    
+    // Skills section
+    sections.push({
+      id: "skills",
+      title: "Skills",
+      content: `
+        <div class="skills-grid">${skills.map(s => `<div class="skill-card">${escapeHtml(s.name)}</div>`).join("")}</div>
+      `,
+      position: 2
+    });
+    
+    // Projects section
+    sections.push({
+      id: "projects",
+      title: "Projects",
+      content: `
+        <div class="projects-grid">
+          ${projects.map(p => `
+            <div class="project-card">
+              ${p.image ? `<img src="${p.image}" alt="${escapeHtml(p.title)}" style="width:100%;height:200px;object-fit:cover;">` : ""}
+              <div class="project-card-content">
+                <h3>${escapeHtml(p.title)}</h3>
+                <p>${escapeHtml(p.desc)}</p>
+                ${p.url ? `<a href="${escapeHtml(p.url)}" target="_blank" class="project-link"><i class="fas fa-external-link-alt"></i> ${escapeHtml(p.url)}</a>` : ""}
+              </div>
+            </div>`).join("")}
+        </div>
+      `,
+      position: 3
+    });
+    
+    // Certificates section
+    sections.push({
+      id: "certificates",
+      title: "Certificates",
+      content: `
+        <div class="certificates-grid">
+          ${certificates.map(c => `
+            <div class="certificate-item">
+              ${c.image ? `<img src="${c.image}" alt="${escapeHtml(c.name)}" style="width:100%;height:200px;object-fit:contain;background:#f5f5f5;">` : '<div style="width:100%;height:200px;background:#f5f5f5;display:flex;align-items:center;justify-content:center;color:#666;">No Image</div>'}
+              <div class="certificate-content">
+                <h3>${escapeHtml(c.name)}</h3>
+                <p>${escapeHtml(c.issuer)} • ${escapeHtml(c.date)}</p>
+                ${c.url ? `<a href="${escapeHtml(c.url)}" target="_blank" class="certificate-link"><i class="fas fa-external-link-alt"></i> Verify Certificate</a>` : ""}
+              </div>
+            </div>
+          `).join("")}
+        </div>
+      `,
+      position: 4
+    });
+    
+    // Add custom sections
+    customSections.forEach(section => {
+      sections.push({
+        id: `custom-${section.id}`,
+        title: section.title,
+        content: `
+          <div class="custom-section-content">
+            ${escapeHtml(section.content)}
+          </div>
+        `,
+        position: section.position
+      });
+    });
+    
+    // Contact section
+    sections.push({
+      id: "contact",
+      title: "Contact",
+      content: `
+        <div class="contact-info">
+          ${contacts.map(c => `<div class="contact-item"><i class="${getContactIcon(c.type)}"></i><span>${escapeHtml(c.info)}</span></div>`).join("")}
+        </div>
+        ${socialMedia.length > 0 ? `
+          <div class="social-links">
+            ${socialMedia.map(s => `
+              <a href="${escapeHtml(s.url)}" target="_blank" class="social-link">
+                <i class="${getSocialMediaIcon(s.platform)}"></i>
+              </a>
+            `).join("")}
+          </div>
+        ` : ""}
+      `,
+      position: 5
+    });
+    
+    // Sort sections by position
+    sections.sort((a, b) => a.position - b.position);
+    
+    // Generate HTML for sections
+    return sections.map(section => `
+      <section id="${section.id}" class="portfolio-section">
+        <h2 class="section-title">${escapeHtml(section.title)}</h2>
+        ${section.content}
+      </section>
+    `).join("");
+  }
+
+  if (template === "template-1") {
+    // Modern Gradient Header - USING CSS VARIABLES
+    html = `
+      <div class="portfolio-header" style="background: linear-gradient(135deg, var(--primary-color) 0%, ${adjustColor(primaryColor, -30)} 100%);">
+        <h1>${escapeHtml(name)}</h1>
+        <p>${escapeHtml(prof)}</p>
+      </div>
+      <nav class="portfolio-nav" style="background: var(--secondary-color);"><ul>
+        <li><a href="#about">About</a></li>
+        <li><a href="#skills">Skills</a></li>
+        <li><a href="#projects">Projects</a></li>
+        <li><a href="#certificates">Certificates</a></li>
+        <li><a href="#contact">Contact</a></li>
+      </ul></nav>
+
+      ${renderSections()}
+
+      <footer class="portfolio-footer" style="background: var(--footer-color);">© ${new Date().getFullYear()} ${escapeHtml(name)}. All rights reserved.</footer>
+    `;
+  } else if (template === "template-2") {
+    // Enhanced Minimalist Clean - USING CSS VARIABLES
+    html = `
+      <div class="portfolio-header" style="background: linear-gradient(135deg, var(--primary-color) 0%, ${adjustColor(primaryColor, -20)} 100%);">
+        <h1>${escapeHtml(name)}</h1>
+        <p>${escapeHtml(prof)}</p>
+      </div>
+
+      <nav class="portfolio-nav" style="background: var(--secondary-color);">
+        <ul>
+          <li><a href="#about">About</a></li>
+          <li><a href="#projects">Projects</a></li>
+          <li><a href="#skills">Skills</a></li>
+          <li><a href="#certificates">Certificates</a></li>
+          <li><a href="#contact">Contact</a></li>
+        </ul>
+      </nav>
+
+      ${renderSections()}
+
+      <footer class="portfolio-footer" style="background: var(--footer-color); color: white; text-align:center;padding:30px;margin-top:50px;">© ${new Date().getFullYear()} ${escapeHtml(name)}</footer>
+    `;
+  } else if (template === "template-3") {
+    // CYBERPUNK NEON - USING CSS VARIABLES
+    html = `
+      <div style="background: linear-gradient(45deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%); min-height: 100vh; position: relative; overflow: hidden; font-family: 'Orbitron', 'Courier New', monospace;">
+        <div class="cyber-grid" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: 
+          linear-gradient(rgba(0, 255, 255, 0.05) 1px, transparent 1px), 
+          linear-gradient(90deg, rgba(0, 255, 255, 0.05) 1px, transparent 1px);
+          background-size: 50px 50px; animation: gridMove 20s linear infinite;"></div>
+        
+        <div style="position: relative; z-index: 10;">
+          <!-- Header -->
+          <div style="padding: 100px 40px 80px; text-align: center; position: relative;">
+            <div style="position: absolute; top: 0; left: 0; width: 100%; height: 2px; background: linear-gradient(90deg, transparent, var(--primary-color), transparent);"></div>
+            <h1 style="font-size: 4.5rem; font-weight: 900; color: var(--primary-color); text-shadow: 0 0 30px var(--primary-color), 0 0 60px var(--primary-color); margin-bottom: 20px; letter-spacing: 2px;">
+              ${escapeHtml(name.toUpperCase())}
+            </h1>
+            <p style="font-size: 1.8rem; color: var(--accent-color); text-shadow: 0 0 20px var(--accent-color); margin-bottom: 40px; letter-spacing: 1px;">
+              &gt; ${escapeHtml(prof)}
+            </p>
+            ${profileImage ? `<img src="${profileImage}" style="width: 180px; height: 180px; border-radius: 50%; border: 3px solid var(--primary-color); margin: 20px auto; display: block; filter: sepia(1) hue-rotate(180deg) contrast(1.2); box-shadow: 0 0 30px var(--primary-color);">` : ""}
+          </div>
+
+          <!-- Navigation -->
+          <nav style="padding: 0 40px 60px; text-align: center;">
+            <div style="display: inline-flex; gap: 40px; background: rgba(0, 0, 0, 0.8); border: 1px solid var(--primary-color); padding: 15px 40px; border-radius: 30px; box-shadow: 0 0 20px rgba(0, 255, 255, 0.3);">
+              ${['About', 'Projects', 'Skills', 'Certificates', 'Contact'].map(item => `
+                <a href="#${item.toLowerCase()}" style="color: var(--primary-color); text-decoration: none; font-weight: 700; font-size: 0.9rem; letter-spacing: 1px; padding: 8px 16px; border-radius: 15px; transition: all 0.3s ease;">
+                  ${item.toUpperCase()}
+                </a>
+              `).join('')}
+            </div>
+          </nav>
+
+          <!-- Main Content Grid -->
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 40px; padding: 0 40px 80px; max-width: 1600px; margin: 0 auto;">
+            
+            <!-- Left Column -->
+            <div>
+              <!-- About Section -->
+              <section id="about" style="background: rgba(0, 0, 0, 0.85); border: 2px solid var(--primary-color); padding: 40px; margin-bottom: 40px; box-shadow: 0 0 30px rgba(0, 255, 255, 0.2); border-radius: 15px; position: relative;">
+                <div style="position: absolute; top: -15px; left: 30px; background: #0f0f23; padding: 0 20px; color: var(--primary-color); font-weight: 700; font-size: 1.1rem;">ABOUT_ME.exe</div>
+                <p style="color: #00ff00; line-height: 1.8; font-size: 1.1rem; margin-top: 10px; text-shadow: 0 0 10px #00ff00;">${escapeHtml(bio)}</p>
+              </section>
+
+              <!-- Skills Section -->
+              <section id="skills" style="background: rgba(0, 0, 0, 0.85); border: 2px solid var(--accent-color); padding: 40px; box-shadow: 0 0 30px rgba(255, 0, 255, 0.2); border-radius: 15px; position: relative;">
+                <div style="position: absolute; top: -15px; left: 30px; background: #0f0f23; padding: 0 20px; color: var(--accent-color); font-weight: 700; font-size: 1.1rem;">SKILLS.dat</div>
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-top: 20px;">
+                  ${skills.map(s => `
+                    <div style="background: linear-gradient(45deg, var(--accent-color), var(--primary-color)); padding: 18px 10px; text-align: center; font-weight: 900; color: black; border: 1px solid var(--primary-color); border-radius: 8px; text-shadow: 0 0 5px rgba(0,0,0,0.5); position: relative; overflow: hidden;">
+                      <div style="position: relative; z-index: 2;">${escapeHtml(s.name)}</div>
+                    </div>
+                  `).join("")}
+                </div>
+              </section>
+            </div>
+
+            <!-- Right Column -->
+            <div>
+              <!-- Projects Section -->
+              <section id="projects" style="background: rgba(0, 0, 0, 0.85); border: 2px solid #00ff00; padding: 40px; margin-bottom: 40px; box-shadow: 0 0 30px rgba(0, 255, 0, 0.2); border-radius: 15px; position: relative;">
+                <div style="position: absolute; top: -15px; left: 30px; background: #0f0f23; padding: 0 20px; color: #00ff00; font-weight: 700; font-size: 1.1rem;">PROJECTS.obj</div>
+                <div style="margin-top: 20px;">
+                 ${projects.map(p => `
+  <div style="background: rgba(var(--primary-color-rgb), 0.1); border-left: 4px solid var(--primary-color); padding: 25px; margin-bottom: 25px; border-radius: 8px; position: relative;">
+    ${p.image ? `<img src="${p.image}" style="width: 100%; height: 200px; object-fit: cover; border-radius: 8px; margin-bottom: 15px; border: 2px solid var(--primary-color);">` : ''}
+    <h3 style="color: var(--primary-color); margin-bottom: 15px; font-size: 1.3rem; text-shadow: 0 0 10px var(--primary-color);">${escapeHtml(p.title)}</h3>
+    <p style="color: #00ff00; margin-bottom: 20px; line-height: 1.6;">${escapeHtml(p.desc)}</p>
+
+    ${p.url ? `
+      <button onclick="window.open('${escapeHtml(p.url)}','_blank')" 
+        style="color: var(--accent-color); background: transparent; border: 1px solid var(--accent-color); 
+               font-weight: 700; padding: 10px 20px; border-radius: 20px; 
+               display: inline-block; cursor: pointer; 
+               text-shadow: 0 0 10px var(--accent-color); transition: all 0.3s ease;">
+        ${escapeHtml(p.url)}
+      </button>
+    ` : ""}
+  </div>
+`).join("")}
+                </div>
+              </section>
+
+              <!-- Certificates Section -->
+              <section id="certificates" style="background: rgba(0, 0, 0, 0.85); border: 2px solid #ffff00; padding: 40px; margin-bottom: 40px; box-shadow: 0 0 30px rgba(255, 255, 0, 0.2); border-radius: 15px; position: relative;">
+                <div style="position: absolute; top: -15px; left: 30px; background: #0f0f23; padding: 0 20px; color: #ffff00; font-weight: 700; font-size: 1.1rem;">CERTIFICATES.sys</div>
+                <div style="margin-top: 20px;">
+                  ${certificates.map(cert => `
+                    <div style="background: rgba(255, 255, 0, 0.1); border-left: 4px solid #ffff00; padding: 20px; margin-bottom: 20px; border-radius: 8px;">
+                      ${cert.image ? `<img src="${cert.image}" style="width: 100%; height: 200px; object-fit: contain; border-radius: 8px; margin-bottom: 15px; border: 2px solid #ffff00; background: rgba(0,0,0,0.5);">` : '<div style="width:100%;height:200px;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;color:#ffff00;border:2px solid #ffff00;border-radius:8px;">No Image</div>'}
+                      <div style="color: #ffff00; font-weight: 700; margin-bottom: 8px; text-shadow: 0 0 10px #ffff00;">${escapeHtml(cert.name || 'Certificate')}</div>
+                      <div style="color: var(--primary-color); font-size: 0.9rem; margin-bottom: 5px;">${escapeHtml(cert.issuer || 'Issuing Organization')}</div>
+                      <div style="color: var(--accent-color); font-size: 0.85rem;">${escapeHtml(cert.date || 'Date')}</div>
+                      ${cert.url ? `
+                        <button onclick="window.open('${escapeHtml(cert.url)}','_blank')" 
+                          style="color: #00ff00; background: transparent; border: 1px solid #00ff00; 
+                                 font-weight: 700; padding: 8px 16px; border-radius: 15px; 
+                                 display: inline-block; cursor: pointer; 
+                                 text-shadow: 0 0 10px #00ff00; transition: all 0.3s ease;">
+                          ${escapeHtml(cert.url)}
+                        </button>
+                      ` : ""}
+                    </div>
+                  `).join("")}
+                </div>
+              </section>
+
+              <!-- Contact Section -->
+              <section id="contact" style="background: rgba(0, 0, 0, 0.85); border: 2px solid var(--accent-color); padding: 40px; box-shadow: 0 0 30px rgba(255, 0, 255, 0.2); border-radius: 15px; position: relative;">
+                <div style="position: absolute; top: -15px; left: 30px; background: #0f0f23; padding: 0 20px; color: var(--accent-color); font-weight: 700; font-size: 1.1rem;">CONTACT.sys</div>
+                <div style="margin-top: 20px;">
+                  ${contacts.map(c => `
+                    <div style="display: flex; align-items: center; gap: 20px; margin-bottom: 20px; padding: 15px; background: rgba(255, 0, 255, 0.1); border-radius: 8px;">
+                      <i class="${getContactIcon(c.type)}" style="color: var(--primary-color); font-size: 1.5rem; text-shadow: 0 0 10px var(--primary-color);"></i>
+                      <span style="color: #ffff00; font-weight: 700; text-shadow: 0 0 10px #ffff00;">${escapeHtml(c.info)}</span>
+                    </div>
+                  `).join("")}
+                  ${socialMedia.length > 0 ? `
+                    <div style="display: flex; gap: 15px; justify-content: center; margin-top: 30px;">
+                      ${socialMedia.map(s => `
+                        <a href="${escapeHtml(s.url)}" target="_blank" style="color: var(--primary-color); font-size: 1.5rem; text-decoration: none; transition: all 0.3s ease;">
+                          <i class="${getSocialMediaIcon(s.platform)}"></i>
+                        </a>
+                      `).join("")}
+                    </div>
+                  ` : ""}
+                </div>
+              </section>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <footer style="background: #000; color: #00ff00; text-align: center; padding: 30px; border-top: 2px solid #00ff00; font-family: 'Courier New', monospace; position: relative;">
+        <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(90deg, transparent, rgba(0, 255, 0, 0.1), transparent);"></div>
+        <div style="position: relative; z-index: 2;">
+          © ${new Date().getFullYear()} ${escapeHtml(name)} | SYSTEM_STATUS: <span style="color: #00ff00; text-shadow: 0 0 10px #00ff00;">ONLINE</span>
+        </div>
+      </footer>
+    `;
+  } else if (template === "template-4") {
+    // ASYMMETRIC MODERN LAYOUT - USING CSS VARIABLES
+    html = `
+      <div style="background: linear-gradient(135deg, var(--primary-color) 0%, ${adjustColor(primaryColor, 20)} 100%); min-height: 100vh; font-family: var(--font-main);">
+        <!-- Hero Section -->
+        <div style="padding: 100px 40px 60px; color: white; text-align: center; position: relative;">
+          <div style="max-width: 800px; margin: 0 auto;">
+            ${profileImage ? `<img src="${profileImage}" style="width: 180px; height: 180px; border-radius: 50%; border: 4px solid rgba(255,255,255,0.3); margin-bottom: 30px;">` : ''}
+            <h1 style="font-size: 4rem; font-weight: 800; margin-bottom: 15px; letter-spacing: -1px;">${escapeHtml(name)}</h1>
+            <p style="font-size: 1.4rem; opacity: 0.9; margin-bottom: 30px;">${escapeHtml(prof)}</p>
+            <div style="display: inline-flex; gap: 20px; flex-wrap: wrap; justify-content: center;">
+              ${contacts.slice(0, 3).map(c => `
+                <div style="display: flex; align-items: center; gap: 10px; background: rgba(255,255,255,0.1); padding: 12px 20px; border-radius: 25px; backdrop-filter: blur(10px);">
+                  <i class="${getContactIcon(c.type)}" style="font-size: 1.1rem;"></i>
+                  <span>${escapeHtml(c.info)}</span>
+                </div>
+              `).join("")}
+            </div>
+          </div>
+        </div>
+
+        <!-- Content Grid -->
+        <div style="display: grid; grid-template-columns: 1fr 1.2fr; gap: 0; max-width: 1400px; margin: 0 auto; background: white; border-radius: 30px 30px 0 0; overflow: hidden;">
+          
+          <!-- Left Column - About & Skills -->
+          <div style="background: #f8f9fa; padding: 60px 40px;">
+            <!-- About -->
+            <section style="margin-bottom: 50px;">
+              <h2 style="font-size: 2rem; color: var(--text-color); margin-bottom: 25px; position: relative; display: inline-block;">
+                About Me
+                <div style="position: absolute; bottom: -8px; left: 0; width: 60%; height: 3px; background: linear-gradient(90deg, var(--primary-color), ${adjustColor(primaryColor, 20)});"></div>
+              </h2>
+              <p style="color: #666; line-height: 1.7; font-size: 1.1rem;">${escapeHtml(bio)}</p>
+            </section>
+
+            <!-- Skills -->
+            <section>
+              <h2 style="font-size: 2rem; color: var(--text-color); margin-bottom: 25px; position: relative; display: inline-block;">
+                Skills
+                <div style="position: absolute; bottom: -8px; left: 0; width: 60%; height: 3px; background: linear-gradient(90deg, var(--primary-color), ${adjustColor(primaryColor, 20)});"></div>
+              </h2>
+              <div style="display: flex; flex-wrap: wrap; gap: 12px;">
+                ${skills.map(s => `
+                  <div style="background: white; color: var(--primary-color); padding: 12px 20px; border-radius: 20px; font-weight: 600; box-shadow: 0 2px 10px rgba(0,0,0,0.08); border: 1px solid #e0e0e0;">
+                    ${escapeHtml(s.name)}
+                  </div>
+                `).join("")}
+              </div>
+            </section>
+          </div>
+
+          <!-- Right Column - Projects & Certificates -->
+          <div style="padding: 60px 40px;">
+            <!-- Projects -->
+            <section style="margin-bottom: 50px;">
+              <h2 style="font-size: 2rem; color: var(--text-color); margin-bottom: 30px; position: relative; display: inline-block;">
+                Projects
+                <div style="position: absolute; bottom: -8px; left: 0; width: 60%; height: 3px; background: linear-gradient(90deg, var(--primary-color), ${adjustColor(primaryColor, 20)});"></div>
+              </h2>
+              <div style="display: grid; gap: 25px;">
+                ${projects.map(p => `
+                  <div style="background: white; border-radius: 15px; padding: 25px; box-shadow: 0 5px 20px rgba(0,0,0,0.08); border-left: 4px solid var(--primary-color); transition: transform 0.3s ease;">
+                    ${p.image ? `<img src="${p.image}" alt="${escapeHtml(p.title)}" style="width: 100%; height: 200px; object-fit: cover; border-radius: 10px; margin-bottom: 20px;">` : ''}
+                    <h3 style="font-size: 1.3rem; color: var(--text-color); margin-bottom: 10px;">${escapeHtml(p.title)}</h3>
+                    <p style="color: #666; margin-bottom: 15px; line-height: 1.6;">${escapeHtml(p.desc)}</p>
+                    ${p.url ? `<a href="${escapeHtml(p.url)}" target="_blank" style="color: var(--primary-color); text-decoration: none; font-weight: 600; display: inline-flex; align-items: center; gap: 8px;">
+                      <i class="fas fa-external-link-alt"></i> ${escapeHtml(p.url)}
+                    </a>` : ""}
+                  </div>
+                `).join("")}
+              </div>
+            </section>
+
+            <!-- Certificates -->
+            <section>
+              <h2 style="font-size: 2rem; color: var(--text-color); margin-bottom: 30px; position: relative; display: inline-block;">
+                Certificates
+                <div style="position: absolute; bottom: -8px; left: 0; width: 60%; height: 3px; background: linear-gradient(90deg, var(--primary-color), ${adjustColor(primaryColor, 20)});"></div>
+              </h2>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                ${certificates.map(c => `
+                  <div style="background: white; border-radius: 12px; padding: 20px; box-shadow: 0 3px 15px rgba(0,0,0,0.08); text-align: center;">
+                    ${c.image ? `<img src="${c.image}" alt="${escapeHtml(c.name)}" style="width: 100%; height: 120px; object-fit: contain; background: #f8f9fa; border-radius: 8px; margin-bottom: 15px;">` : '<div style="width:100%;height:120px;background:#f8f9fa;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#666;margin-bottom:15px;"><i class="fas fa-award" style="font-size:2rem;"></i></div>'}
+                    <h4 style="font-size: 1rem; color: var(--text-color); margin-bottom: 8px;">${escapeHtml(c.name)}</h4>
+                    <p style="color: #666; font-size: 0.9rem; margin-bottom: 5px;">${escapeHtml(c.issuer)}</p>
+                    <p style="color: #999; font-size: 0.8rem;">${escapeHtml(c.date)}</p>
+                    ${c.url ? `<a href="${escapeHtml(c.url)}" target="_blank" style="color: var(--primary-color); font-size: 0.8rem; text-decoration: none;">Verify</a>` : ""}
+                  </div>
+                `).join("")}
+              </div>
+            </section>
+          </div>
+        </div>
+      </div>
+    `;
+  } else if (template === "template-5") {
+    // CREATIVE MASONRY LAYOUT - USING CSS VARIABLES
+    html = `
+      <div style="background: #0a0a0a; min-height: 100vh; font-family: var(--font-main); color: white;">
+        <!-- Navigation -->
+        <nav style="padding: 30px 40px; display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.05); backdrop-filter: blur(10px);">
+          <div style="font-size: 1.5rem; font-weight: 700; color: white;">${escapeHtml(name.split(' ')[0])}</div>
+          <div style="display: flex; gap: 30px;">
+            ${['Work', 'About', 'Contact'].map(item => `
+              <a href="#${item.toLowerCase()}" style="color: #ccc; text-decoration: none; font-weight: 500; transition: color 0.3s ease;">${item}</a>
+            `).join('')}
+          </div>
+        </nav>
+
+        <!-- Hero -->
+        <div style="padding: 120px 40px 80px; text-align: center; position: relative;">
+          <h1 style="font-size: 5rem; font-weight: 800; margin-bottom: 20px; background: linear-gradient(135deg, var(--accent-color), ${adjustColor(accentColor, 30)}); -webkit-background-clip: text; -webkit-text-fill-color: transparent; letter-spacing: -2px;">
+            ${escapeHtml(name)}
+          </h1>
+          <p style="font-size: 1.5rem; color: #ccc; margin-bottom: 40px;">${escapeHtml(prof)}</p>
+          ${profileImage ? `<img src="${profileImage}" style="width: 200px; height: 200px; border-radius: 50%; border: 4px solid #333; margin: 0 auto;">` : ''}
+        </div>
+
+        <!-- Masonry Grid -->
+        <div style="padding: 0 40px 80px; max-width: 1400px; margin: 0 auto;">
+          <div style="columns: 3; gap: 30px;">
+            
+            <!-- About Card -->
+            <div style="break-inside: avoid; background: #1a1a1a; border-radius: 20px; padding: 30px; margin-bottom: 30px; border: 1px solid #333;">
+              <h2 style="font-size: 1.8rem; margin-bottom: 20px; color: white;">About</h2>
+              <p style="color: #ccc; line-height: 1.6;">${escapeHtml(bio)}</p>
+            </div>
+
+            <!-- Skills Card -->
+            <div style="break-inside: avoid; background: #1a1a1a; border-radius: 20px; padding: 30px; margin-bottom: 30px; border: 1px solid #333;">
+              <h2 style="font-size: 1.8rem; margin-bottom: 20px; color: white;">Skills</h2>
+              <div style="display: flex; flex-wrap: wrap; gap: 10px;">
+                ${skills.map(s => `
+                  <div style="background: linear-gradient(135deg, var(--accent-color), ${adjustColor(accentColor, 30)}); color: black; padding: 8px 16px; border-radius: 15px; font-weight: 700; font-size: 0.9rem;">
+                    ${escapeHtml(s.name)}
+                  </div>
+                `).join("")}
+              </div>
+            </div>
+
+            <!-- Projects -->
+            ${projects.map(p => `
+              <div style="break-inside: avoid; background: #1a1a1a; border-radius: 20px; padding: 30px; margin-bottom: 30px; border: 1px solid #333;">
+                ${p.image ? `<img src="${p.image}" alt="${escapeHtml(p.title)}" style="width: 100%; height: 180px; object-fit: cover; border-radius: 12px; margin-bottom: 20px;">` : ''}
+                <h3 style="font-size: 1.4rem; margin-bottom: 10px; color: white;">${escapeHtml(p.title)}</h3>
+                <p style="color: #ccc; margin-bottom: 15px; line-height: 1.5;">${escapeHtml(p.desc)}</p>
+                ${p.url ? `<a href="${escapeHtml(p.url)}" target="_blank" style="color: ${adjustColor(accentColor, 30)}; text-decoration: none; font-weight: 600; display: inline-flex; align-items: center; gap: 8px;">
+                  <i class="fas fa-external-link-alt"></i> ${escapeHtml(p.url)}
+                </a>` : ""}
+              </div>
+            `).join("")}
+
+            <!-- Certificates -->
+            ${certificates.map(c => `
+              <div style="break-inside: avoid; background: #1a1a1a; border-radius: 20px; padding: 25px; margin-bottom: 30px; border: 1px solid #333; text-align: center;">
+                ${c.image ? `<img src="${c.image}" alt="${escapeHtml(c.name)}" style="width: 100%; height: 150px; object-fit: contain; background: #2a2a2a; border-radius: 10px; margin-bottom: 15px;">` : '<div style="width:100%;height:150px;background:#2a2a2a;border-radius:10px;display:flex;align-items:center;justify-content:center;margin-bottom:15px;"><i class="fas fa-award" style="font-size:3rem;color:var(--accent-color);"></i></div>'}
+                <h4 style="font-size: 1.1rem; color: white; margin-bottom: 8px;">${escapeHtml(c.name)}</h4>
+                <p style="color: #ccc; font-size: 0.9rem; margin-bottom: 5px;">${escapeHtml(c.issuer)}</p>
+                <p style="color: #999; font-size: 0.8rem;">${escapeHtml(c.date)}</p>
+                ${c.url ? `<a href="${escapeHtml(c.url)}" target="_blank" style="color: var(--accent-color); font-size: 0.8rem; text-decoration: none;">Verify</a>` : ""}
+              </div>
+            `).join("")}
+
+            <!-- Contact Card -->
+            <div style="break-inside: avoid; background: #1a1a1a; border-radius: 20px; padding: 30px; margin-bottom: 30px; border: 1px solid #333;">
+              <h2 style="font-size: 1.8rem; margin-bottom: 20px; color: white;">Contact</h2>
+              <div style="display: flex; flex-direction: column; gap: 15px;">
+                ${contacts.map(c => `
+                  <div style="display: flex; align-items: center; gap: 15px;">
+                    <i class="${getContactIcon(c.type)}" style="color: var(--accent-color); font-size: 1.2rem;"></i>
+                    <span style="color: #ccc;">${escapeHtml(c.info)}</span>
+                  </div>
+                `).join("")}
+                ${socialMedia.length > 0 ? `
+                  <div style="display: flex; gap: 15px; justify-content: center; margin-top: 20px;">
+                    ${socialMedia.map(s => `
+                      <a href="${escapeHtml(s.url)}" target="_blank" style="color: var(--accent-color); font-size: 1.5rem; text-decoration: none;">
+                        <i class="${getSocialMediaIcon(s.platform)}"></i>
+                      </a>
+                    `).join("")}
+                  </div>
+                ` : ""}
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    `;
+  } else if (template === "template-6") {
+    // RETRO 80s - USING CSS VARIABLES
+    html = `
+      <div style="background: linear-gradient(45deg, var(--accent-color), var(--primary-color), ${adjustColor(primaryColor, 30)}, ${adjustColor(accentColor, -20)}); background-size: 400% 400%; animation: gradientShift 8s ease infinite; min-height: 100vh; padding: 40px; font-family: 'Comic Sans MS', cursive;">
+        <div style="max-width: 1000px; margin: 0 auto;">
+          <div style="background: white; border: 8px dashed var(--accent-color); padding: 50px; margin-bottom: 40px; text-align: center; transform: rotate(-1deg); box-shadow: 20px 20px 0 var(--primary-color);">
+            <h1 style="font-size: 4rem; color: var(--accent-color); margin-bottom: 10px; text-shadow: 3px 3px 0 #ffeaa7;">${escapeHtml(name)}</h1>
+            <p style="font-size: 1.8rem; color: var(--primary-color); font-weight: bold;">${escapeHtml(prof)}</p>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-bottom: 40px;">
+            <div style="background: white; border: 6px dotted ${adjustColor(primaryColor, 20)}; padding: 30px; transform: rotate(2deg);">
+              <h2 style="color: ${adjustColor(primaryColor, 20)}; font-size: 2rem; margin-bottom: 20px; border-bottom: 3px wavy ${adjustColor(primaryColor, 20)};">About Me 🎯</h2>
+              ${profileImage ? `<img src="${profileImage}" style="width: 180px; height: 180px; border-radius: 50%; border: 5px solid var(--accent-color); margin: 0 auto 20px; display: block; filter: saturate(2);">` : ""}
+              <p style="color: var(--text-color); line-height: 1.6; font-size: 1.1rem;">${escapeHtml(bio)}</p>
+            </div>
+
+            <div style="background: white; border: 6px double var(--primary-color); padding: 30px; transform: rotate(-1deg);">
+              <h2 style="color: var(--primary-color); font-size: 2rem; margin-bottom: 20px; border-bottom: 3px double var(--primary-color);">Skills 🚀</h2>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                ${skills.map(s => `<div style="background: #ffeaa7; color: var(--text-color); padding: 15px; text-align: center; font-weight: bold; border: 3px solid var(--accent-color); transform: rotate(1deg);">${escapeHtml(s.name)}</div>`).join("")}
+              </div>
+            </div>
+          </div>
+
+          <div style="background: white; border: 8px ridge ${adjustColor(primaryColor, 10)}; padding: 40px; margin-bottom: 40px; transform: rotate(1deg);">
+            <h2 style="color: ${adjustColor(primaryColor, 10)}; font-size: 2rem; margin-bottom: 30px; border-bottom: 4px ridge ${adjustColor(primaryColor, 10)};">Projects 🌟</h2>
+            <div style="display: grid; gap: 25px;">
+              ${projects.map(p => `
+                <div style="background: #f8f9fa; border: 4px groove var(--accent-color); padding: 25px; transform: rotate(-0.5deg);">
+                  ${p.image ? `<img src="${p.image}" alt="${escapeHtml(p.title)}" style="width: 100%; height: 200px; object-fit: cover; border-radius: 8px; margin-bottom: 15px; border: 3px solid var(--accent-color);">` : ''}
+                  <h3 style="color: var(--accent-color); font-size: 1.5rem; margin-bottom: 15px;">${escapeHtml(p.title)}</h3>
+                  <p style="color: #666; margin-bottom: 20px; line-height: 1.5;">${escapeHtml(p.desc)}</p>
+                  ${p.url ? `<a href="${escapeHtml(p.url)}" target="_blank" style="background: var(--primary-color); color: white; padding: 10px 25px; text-decoration: none; font-weight: bold; border: 3px outset var(--primary-color); display: inline-block;">${escapeHtml(p.url)} 🎉</a>` : ""}
+                </div>
+              `).join("")}
+            </div>
+          </div>
+
+          <div style="background: white; border: 6px inset #ffeaa7; padding: 30px; margin-bottom: 40px; transform: rotate(-1deg);">
+            <h2 style="color: var(--text-color); font-size: 2rem; margin-bottom: 20px;">Certificates 🏆</h2>
+            <div style="display: grid; gap: 20px;">
+              ${certificates.map(c => `
+                <div style="background: #f8f9fa; border: 4px groove ${adjustColor(primaryColor, 20)}; padding: 20px; transform: rotate(0.5deg);">
+                  ${c.image ? `<img src="${c.image}" alt="${escapeHtml(c.name)}" style="width: 100%; height: 200px; object-fit: contain; background: #f5f5f5; border-radius: 8px; margin-bottom: 15px; border: 3px solid ${adjustColor(primaryColor, 20)};">` : '<div style="width:100%;height:200px;background:#f5f5f5;display:flex;align-items:center;justify-content:center;color:#666;border:3px solid ' + adjustColor(primaryColor, 20) + ';border-radius:8px;">No Image</div>'}
+                  <h3 style="color: ${adjustColor(primaryColor, 20)}; font-size: 1.3rem; margin-bottom: 10px;">${escapeHtml(c.name)}</h3>
+                  <p style="color: #666; margin-bottom: 10px;">${escapeHtml(c.issuer)}</p>
+                  <p style="color: #888; margin-bottom: 15px;">${escapeHtml(c.date)}</p>
+                  ${c.url ? `<a href="${escapeHtml(c.url)}" target="_blank" style="background: var(--accent-color); color: white; padding: 8px 20px; text-decoration: none; font-weight: bold; border: 3px outset var(--accent-color); display: inline-block;">Verify 🎯</a>` : ""}
+                </div>
+              `).join("")}
+            </div>
+          </div>
+
+          <div style="background: white; border: 6px inset #ffeaa7; padding: 30px; text-align: center;">
+            <h2 style="color: var(--text-color); font-size: 2rem; margin-bottom: 20px;">Contact 📞</h2>
+            <div style="display: flex; justify-content: center; flex-wrap: wrap; gap: 20px;">
+              ${contacts.map(c => `<div style="background: ${adjustColor(primaryColor, 20)}; color: white; padding: 15px 25px; border: 3px outset ${adjustColor(primaryColor, 20)}; transform: rotate(1deg);"><i class="${getContactIcon(c.type)}"></i> ${escapeHtml(c.info)}</div>`).join("")}
+              ${socialMedia.length > 0 ? `
+                <div style="display: flex; gap: 15px; justify-content: center; width: 100%; margin-top: 20px;">
+                  ${socialMedia.map(s => `
+                    <a href="${escapeHtml(s.url)}" target="_blank" style="background: var(--accent-color); color: white; padding: 12px; border-radius: 50%; border: 3px outset var(--accent-color); display: flex; align-items: center; justify-content: center; width: 50px; height: 50px; text-decoration: none;">
+                      <i class="${getSocialMediaIcon(s.platform)}"></i>
+                    </a>
+                  `).join("")}
+                </div>
+              ` : ""}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <footer style="background: var(--footer-color); color: #ffeaa7; text-align: center; padding: 20px; font-weight: bold; border-top: 8px solid var(--accent-color);">
+        © ${new Date().getFullYear()} ${escapeHtml(name)} • RADICAL!
+      </footer>
+    `;
+  } else if (template === "template-7") {
+    // SPACE GALAXY - USING CSS VARIABLES
+    html = `
+      <div style="background: #000; min-height: 100vh; position: relative; overflow: hidden;">
+        <div class="stars" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: transparent;"></div>
+        <div class="twinkling" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: transparent;"></div>
+        
+        <div style="position: relative; z-index: 10; padding: 60px 40px;">
+          <div style="text-align: center; margin-bottom: 60px;">
+            <h1 style="font-size: 5rem; font-weight: 300; color: #fff; margin-bottom: 20px; text-shadow: 0 0 20px var(--primary-color), 0 0 40px var(--primary-color); font-family: 'Arial', sans-serif;">${escapeHtml(name)}</h1>
+            <p style="font-size: 1.8rem; color: var(--primary-color); text-shadow: 0 0 10px var(--primary-color);">${escapeHtml(prof)}</p>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 40px; max-width: 1400px; margin: 0 auto;">
+            <div style="background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); border: 1px solid rgba(var(--primary-color-rgb), 0.3); border-radius: 20px; padding: 40px; grid-column: span 2;">
+              <h2 style="color: var(--primary-color); font-size: 2rem; margin-bottom: 30px; display: flex; align-items: center; gap: 15px;"><span style="font-size: 1.5rem;">🚀</span> Mission Log</h2>
+              ${profileImage ? `<img src="${profileImage}" style="width: 180px; height: 180px; border-radius: 50%; border: 3px solid var(--primary-color); float: left; margin: 0 30px 20px 0; shape-outside: circle();">` : ""}
+              <p style="color: #e3f2fd; line-height: 1.8; font-size: 1.1rem;">${escapeHtml(bio)}</p>
+            </div>
+
+            <div style="background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); border: 1px solid rgba(var(--accent-color-rgb), 0.3); border-radius: 20px; padding: 40px;">
+              <h2 style="color: var(--accent-color); font-size: 2rem; margin-bottom: 30px; display: flex; align-items: center; gap: 15px;"><span style="font-size: 1.5rem;">🛰️</span> Contact Station</h2>
+              <div>
+                ${contacts.map(c => `<div style="display: flex; align-items: center; gap: 15px; margin-bottom: 20px; color: #e3f2fd;"><i class="${getContactIcon(c.type)}" style="color: var(--accent-color); font-size: 1.2rem;"></i> <span>${escapeHtml(c.info)}</span></div>`).join("")}
+                ${socialMedia.length > 0 ? `
+                  <div style="display: flex; gap: 15px; justify-content: center; margin-top: 30px;">
+                    ${socialMedia.map(s => `
+                      <a href="${escapeHtml(s.url)}" target="_blank" style="color: var(--primary-color); font-size: 1.5rem; text-decoration: none; transition: all 0.3s ease;">
+                        <i class="${getSocialMediaIcon(s.platform)}"></i>
+                      </a>
+                    `).join("")}
+                  </div>
+                ` : ""}
+              </div>
+            </div>
+
+            <div style="background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); border: 1px solid rgba(255, 193, 7, 0.3); border-radius: 20px; padding: 40px; grid-column: span 3;">
+              <h2 style="color: #ffc107; font-size: 2rem; margin-bottom: 30px; display: flex; align-items: center; gap: 15px;"><span style="font-size: 1.5rem;">🌌</span> Galactic Projects</h2>
+              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px;">
+                ${projects.map(p => `
+                  <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 193, 7, 0.2); border-radius: 15px; padding: 30px; transition: all 0.3s ease;">
+                    ${p.image ? `<img src="${p.image}" alt="${escapeHtml(p.title)}" style="width: 100%; height: 200px; object-fit: cover; border-radius: 8px; margin-bottom: 15px; border: 1px solid rgba(255, 193, 7, 0.5);">` : ''}
+                    <h3 style="color: #ffc107; font-size: 1.4rem; margin-bottom: 15px;">${escapeHtml(p.title)}</h3>
+                    <p style="color: #e3f2fd; margin-bottom: 20px; line-height: 1.6;">${escapeHtml(p.desc)}</p>
+                    ${p.url ? `<a href="${escapeHtml(p.url)}" target="_blank" style="color: var(--primary-color); text-decoration: none; border: 1px solid var(--primary-color); padding: 8px 20px; border-radius: 20px; display: inline-block; transition: all 0.3s ease;">${escapeHtml(p.url)}</a>` : ""}
+                  </div>
+                `).join("")}
+              </div>
+            </div>
+
+            <div style="background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); border: 1px solid rgba(76, 175, 80, 0.3); border-radius: 20px; padding: 40px; grid-column: span 3;">
+              <h2 style="color: #4caf50; font-size: 2rem; margin-bottom: 30px; display: flex; align-items: center; gap: 15px;"><span style="font-size: 1.5rem;">🛠️</span> Technical Arsenal</h2>
+              <div style="display: flex; flex-wrap: wrap; gap: 15px;">
+                ${skills.map(s => `<div style="background: rgba(76, 175, 80, 0.2); color: #4caf50; padding: 12px 25px; border-radius: 25px; border: 1px solid #4caf50;">${escapeHtml(s.name)}</div>`).join("")}
+              </div>
+            </div>
+
+            <div style="background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); border: 1px solid rgba(255, 152, 0, 0.3); border-radius: 20px; padding: 40px; grid-column: span 3;">
+              <h2 style="color: #ff9800; font-size: 2rem; margin-bottom: 30px; display: flex; align-items: center; gap: 15px;"><span style="font-size: 1.5rem;">🏆</span> Space Certifications</h2>
+              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px;">
+                ${certificates.map(c => `
+                  <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 152, 0, 0.2); border-radius: 15px; padding: 30px; transition: all 0.3s ease;">
+                    ${c.image ? `<img src="${c.image}" alt="${escapeHtml(c.name)}" style="width: 100%; height: 200px; object-fit: contain; background: rgba(0,0,0,0.5); border-radius: 8px; margin-bottom: 15px; border: 1px solid rgba(255, 152, 0, 0.5);">` : '<div style="width:100%;height:200px;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;color:#ff9800;border:1px solid rgba(255,152,0,0.5);border-radius:8px;">No Image</div>'}
+                    <h3 style="color: #ff9800; font-size: 1.4rem; margin-bottom: 15px;">${escapeHtml(c.name)}</h3>
+                    <p style="color: #e3f2fd; margin-bottom: 10px;">${escapeHtml(c.issuer)}</p>
+                    <p style="color: #b0bec5; margin-bottom: 15px;">${escapeHtml(c.date)}</p>
+                    ${c.url ? `<a href="${escapeHtml(c.url)}" target="_blank" style="color: var(--primary-color); text-decoration: none; border: 1px solid var(--primary-color); padding: 8px 20px; border-radius: 20px; display: inline-block; transition: all 0.3s ease;">Verify Certificate</a>` : ""}
+                  </div>
+                `).join("")}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <footer style="background: rgba(0, 0, 0, 0.8); color: var(--primary-color); text-align: center; padding: 30px; border-top: 1px solid rgba(var(--primary-color-rgb), 0.3); position: relative; z-index: 10;">
+        © ${new Date().getFullYear()} ${escapeHtml(name)} • Exploring the Digital Universe
+      </footer>
+    `;
+ } else if (template === "template-8") {
+    // GLASS MORPHISM MODERN - USING CSS VARIABLES
+    html = `
+      <div style="background: linear-gradient(135deg, var(--primary-color) 0%, ${adjustColor(primaryColor, 20)} 100%); min-height: 100vh; font-family: var(--font-main); padding: 40px;">
+        
+        <!-- Main Container -->
+        <div style="max-width: 1200px; margin: 0 auto;">
+          
+          <!-- Header -->
+          <div style="background: rgba(255,255,255,0.1); backdrop-filter: blur(20px); border-radius: 25px; padding: 50px; margin-bottom: 40px; border: 1px solid rgba(255,255,255,0.2);">
+            <div style="display: flex; align-items: center; gap: 40px;">
+              ${profileImage ? `<img src="${profileImage}" style="width: 150px; height: 150px; border-radius: 50%; border: 3px solid rgba(255,255,255,0.3);">` : ''}
+              <div>
+                <h1 style="font-size: 3.5rem; font-weight: 700; color: white; margin-bottom: 10px; letter-spacing: -1px;">${escapeHtml(name)}</h1>
+                <p style="font-size: 1.3rem; color: rgba(255,255,255,0.8); margin-bottom: 20px;">${escapeHtml(prof)}</p>
+                <p style="color: rgba(255,255,255,0.7); line-height: 1.6; max-width: 600px;">${escapeHtml(bio)}</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Content Grid -->
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 40px;">
+            
+            <!-- Left Column -->
+            <div style="display: flex; flex-direction: column; gap: 40px;">
+              
+              <!-- Skills -->
+              <div style="background: rgba(255,255,255,0.1); backdrop-filter: blur(20px); border-radius: 20px; padding: 35px; border: 1px solid rgba(255,255,255,0.2);">
+                <h2 style="font-size: 1.8rem; color: white; margin-bottom: 25px; display: flex; align-items: center; gap: 12px;">
+                  <i class="fas fa-code" style="color: var(--accent-color);"></i>
+                  Skills
+                </h2>
+                <div style="display: flex; flex-wrap: wrap; gap: 12px;">
+                  ${skills.map(s => `
+                    <div style="background: rgba(255,255,255,0.15); color: white; padding: 12px 20px; border-radius: 15px; font-weight: 600; backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1);">
+                      ${escapeHtml(s.name)}
+                    </div>
+                  `).join("")}
+                </div>
+              </div>
+
+              <!-- Certificates -->
+              <div style="background: rgba(255,255,255,0.1); backdrop-filter: blur(20px); border-radius: 20px; padding: 35px; border: 1px solid rgba(255,255,255,0.2);">
+                <h2 style="font-size: 1.8rem; color: white; margin-bottom: 25px; display: flex; align-items: center; gap: 12px;">
+                  <i class="fas fa-award" style="color: var(--accent-color);"></i>
+                  Certificates
+                </h2>
+                <div style="display: flex; flex-direction: column; gap: 20px;">
+                  ${certificates.map(c => `
+                    <div style="display: flex; gap: 15px; align-items: flex-start;">
+                      ${c.image ? `<img src="${c.image}" alt="${escapeHtml(c.name)}" style="width: 60px; height: 60px; object-fit: contain; background: rgba(255,255,255,0.1); border-radius: 10px; padding: 8px;">` : '<div style="width:60px;height:60px;background:rgba(255,255,255,0.1);border-radius:10px;display:flex;align-items:center;justify-content:center;"><i class="fas fa-certificate" style="color:var(--accent-color);"></i></div>'}
+                      <div style="flex: 1;">
+                        <h4 style="color: white; margin-bottom: 5px; font-size: 1rem;">${escapeHtml(c.name)}</h4>
+                        <p style="color: rgba(255,255,255,0.7); font-size: 0.9rem; margin-bottom: 3px;">${escapeHtml(c.issuer)}</p>
+                        <p style="color: rgba(255,255,255,0.5); font-size: 0.8rem;">${escapeHtml(c.date)}</p>
+                        ${c.url ? `<a href="${escapeHtml(c.url)}" target="_blank" style="color: var(--accent-color); font-size: 0.8rem; text-decoration: none;">Verify</a>` : ""}
+                      </div>
+                    </div>
+                  `).join("")}
+                </div>
+              </div>
+
+            </div>
+
+            <!-- Right Column -->
+            <div style="display: flex; flex-direction: column; gap: 40px;">
+              
+              <!-- Projects -->
+              <div style="background: rgba(255,255,255,0.1); backdrop-filter: blur(20px); border-radius: 20px; padding: 35px; border: 1px solid rgba(255,255,255,0.2);">
+                <h2 style="font-size: 1.8rem; color: white; margin-bottom: 25px; display: flex; align-items: center; gap: 12px;">
+                  <i class="fas fa-rocket" style="color: ${adjustColor(primaryColor, 10)};"></i>
+                  Projects
+                </h2>
+                <div style="display: flex; flex-direction: column; gap: 25px;">
+                  ${projects.map(p => `
+                    <div style="background: rgba(255,255,255,0.08); border-radius: 15px; padding: 25px; border: 1px solid rgba(255,255,255,0.1);">
+                      ${p.image ? `<img src="${p.image}" alt="${escapeHtml(p.title)}" style="width: 100%; height: 160px; object-fit: cover; border-radius: 10px; margin-bottom: 15px;">` : ''}
+                      <h3 style="color: white; margin-bottom: 10px; font-size: 1.2rem;">${escapeHtml(p.title)}</h3>
+                      <p style="color: rgba(255,255,255,0.7); margin-bottom: 15px; line-height: 1.5; font-size: 0.95rem;">${escapeHtml(p.desc)}</p>
+                      ${p.url ? `<a href="${escapeHtml(p.url)}" target="_blank" style="color: ${adjustColor(primaryColor, 10)}; text-decoration: none; font-weight: 600; display: inline-flex; align-items: center; gap: 8px; font-size: 0.9rem;">
+                        <i class="fas fa-external-link-alt"></i> ${escapeHtml(p.url)}
+                      </a>` : ""}
+                    </div>
+                  `).join("")}
+                </div>
+              </div>
+
+              <!-- Contact -->
+              <div style="background: rgba(255,255,255,0.1); backdrop-filter: blur(20px); border-radius: 20px; padding: 35px; border: 1px solid rgba(255,255,255,0.2);">
+                <h2 style="font-size: 1.8rem; color: white; margin-bottom: 25px; display: flex; align-items: center; gap: 12px;">
+                  <i class="fas fa-paper-plane" style="color: var(--accent-color);"></i>
+                  Contact
+                </h2>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                  ${contacts.map(c => `
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                      <i class="${getContactIcon(c.type)}" style="color: var(--accent-color); font-size: 1.1rem;"></i>
+                      <span style="color: rgba(255,255,255,0.8); font-size: 0.95rem;">${escapeHtml(c.info)}</span>
+                    </div>
+                  `).join("")}
+                  ${socialMedia.length > 0 ? `
+                    <div style="grid-column: span 2; display: flex; gap: 15px; justify-content: center; margin-top: 10px;">
+                      ${socialMedia.map(s => `
+                        <a href="${escapeHtml(s.url)}" target="_blank" style="color: white; font-size: 1.3rem; text-decoration: none; transition: all 0.3s ease;">
+                          <i class="${getSocialMediaIcon(s.platform)}"></i>
+                        </a>
+                      `).join("")}
+                    </div>
+                  ` : ""}
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+  } else if (template === "template-9") {
+    // Tech Minimal - USING CSS VARIABLES
+    html = `
+      <div class="portfolio-header" style="background: var(--secondary-color); color: white; padding: 80px 40px; text-align: center; font-family: 'Roboto Mono', monospace;">
+        <h1 style="font-size: 3rem; font-weight: 400; margin-bottom: 15px;">&gt; ${escapeHtml(name)}</h1>
+        <p style="font-size: 1.2rem; color: var(--primary-color); margin-bottom: 30px;">// ${escapeHtml(prof)}</p>
+        <div style="color: #888; font-size: 0.9rem;">
+          <span style="color: var(--primary-color);">~</span> Portfolio initialized
+        </div>
+      </div>
+
+      <nav class="portfolio-nav" style="background: #2d2d2d; padding: 0 40px;">
+        <ul style="display: flex; gap: 40px; list-style: none; padding: 20px 0; font-family: 'Roboto Mono', monospace;">
+          <li><a href="#about" style="text-decoration: none; color: #ccc; font-size: 0.9rem;">about_me()</a></li>
+          <li><a href="#projects" style="text-decoration: none; color: #ccc; font-size: 0.9rem;">projects()</a></li>
+          <li><a href="#skills" style="text-decoration: none; color: #ccc; font-size: 0.9rem;">skills()</a></li>
+          <li><a href="#certificates" style="text-decoration: none; color: #ccc; font-size: 0.9rem;">certificates()</a></li>
+          <li><a href="#contact" style="text-decoration: none; color: #ccc; font-size: 0.9rem;">contact()</a></li>
+        </ul>
+      </nav>
+
+      ${renderSections()}
+
+      <footer class="portfolio-footer" style="background: var(--footer-color); color: #888; text-align: center; padding: 40px; font-family: 'Roboto Mono', monospace; font-size: 0.9rem;">
+        // © ${new Date().getFullYear()} ${escapeHtml(name)} - Portfolio v1.0
+      </footer>
+    `;
+  } else if (template === "template-10") {
+    // MINIMAL DARK ELEGANT - USING CSS VARIABLES
+    html = `
+      <div style="background: #0f0f0f; min-height: 100vh; font-family: var(--font-main); color: white;">
+        
+        <!-- Sidebar -->
+        <div style="display: grid; grid-template-columns: 300px 1fr; min-height: 100vh;">
+          
+          <!-- Fixed Sidebar -->
+          <div style="background: var(--secondary-color); padding: 60px 40px; border-right: 1px solid #333; position: sticky; top: 0; height: 100vh; overflow-y: auto;">
+            ${profileImage ? `<img src="${profileImage}" style="width: 120px; height: 120px; border-radius: 50%; border: 2px solid #333; margin-bottom: 40px;">` : ''}
+            
+            <h1 style="font-size: 2.2rem; font-weight: 300; margin-bottom: 10px; color: white; letter-spacing: -0.5px;">${escapeHtml(name)}</h1>
+            <p style="color: #888; margin-bottom: 40px; font-size: 1.1rem;">${escapeHtml(prof)}</p>
+            
+            <div style="margin-bottom: 50px;">
+              <h3 style="color: #666; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 20px;">Contact</h3>
+              <div style="display: flex; flex-direction: column; gap: 15px;">
+                ${contacts.map(c => `
+                  <div style="display: flex; align-items: center; gap: 12px;">
+                    <i class="${getContactIcon(c.type)}" style="color: #888; font-size: 1rem;"></i>
+                    <span style="color: #ccc; font-size: 0.95rem;">${escapeHtml(c.info)}</span>
+                  </div>
+                `).join("")}
+              </div>
+              ${socialMedia.length > 0 ? `
+                <div style="display: flex; gap: 15px; justify-content: center; margin-top: 20px;">
+                  ${socialMedia.map(s => `
+                    <a href="${escapeHtml(s.url)}" target="_blank" style="color: #888; font-size: 1.2rem; text-decoration: none; transition: all 0.3s ease;">
+                      <i class="${getSocialMediaIcon(s.platform)}"></i>
+                    </a>
+                  `).join("")}
+                </div>
+              ` : ""}
+            </div>
+
+            <div>
+              <h3 style="color: #666; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 20px;">Skills</h3>
+              <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                ${skills.map(s => `
+                  <div style="background: #333; color: #ccc; padding: 6px 12px; border-radius: 12px; font-size: 0.85rem;">
+                    ${escapeHtml(s.name)}
+                  </div>
+                `).join("")}
+              </div>
+            </div>
+          </div>
+
+          <!-- Main Content -->
+          <div style="padding: 80px 60px; overflow-y: auto;">
+            ${renderSections()}
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  preview.innerHTML = html;
+
+  // Reapply the selected background class
+  const bgSelector = document.getElementById('bgSelector');
+  if (bgSelector) changeBackground(bgSelector.value);
+}
+
+/* -------------------------
+   Open preview in new tab
+   ------------------------- */
+function openInNewTab() {
+  const newWin = window.open();
+  const doc = newWin.document;
+
+  // Add meta & title
+  const viewport = doc.createElement('meta');
+  viewport.name = 'viewport';
+  viewport.content = 'width=device-width, initial-scale=1.0';
+  doc.head.appendChild(viewport);
+
+  const title = doc.createElement('title');
+  title.textContent = document.getElementById("fullName").value + ' - Portfolio';
+  doc.head.appendChild(title);
+
+  // Clone font links
+  Array.from(document.querySelectorAll('link[rel="stylesheet"], link[href*="fonts.googleapis"]')).forEach(link => {
+    try { doc.head.appendChild(link.cloneNode(true)); } catch(e) {}
+  });
+
+  // Clone styles
+  const style = document.querySelector("style").cloneNode(true);
+  doc.head.appendChild(style);
+
+  // Create container and set innerHTML to preview content
+  const container = doc.createElement('div');
+  container.innerHTML = preview.innerHTML;
+
+  // Copy CSS variables from root
+  const rootStyles = getComputedStyle(document.documentElement);
+  const vars = ['--primary-color','--accent-color','--text-color','--footer-color','--font-main','--secondary-color','--portfolio-bg'];
+  vars.forEach(v => {
+    container.style.setProperty(v, rootStyles.getPropertyValue(v));
+  });
+
+  // Add wrapper classes for template & background
+  const activeTemplateCard = document.querySelector(".template-card.active");
+  const template = activeTemplateCard ? activeTemplateCard.dataset.template : "template-1";
+  container.className = 'portfolio-preview ' + template;
+  const bgClass = document.getElementById('bgSelector').value;
+  container.classList.add(bgClass);
+container.style.maxWidth = 'none';
+  doc.body.appendChild(container);
+}
+
+/* -------------------------
+   Utilities
+   ------------------------- */
+function escapeHtml(unsafe) {
+  if (unsafe === undefined || unsafe === null) return '';
+  return String(unsafe)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+/* -------------------------
+   Firebase Portfolio Hosting
+   ------------------------- */
+
+let currentPortfolioId = null;
+
+async function hostPortfolio() {
+    try {
+        const btn = event.target;
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Publishing...';
+        btn.disabled = true;
+
+        // Collect ALL portfolio data
+        const portfolioData = {
+            name: document.getElementById("fullName").value,
+            profession: document.getElementById("profession").value,
+            bio: document.getElementById("bio").value,
+            profileImage: profileImage,
+            projects: projects,
+            certificates: certificates,
+            skills: skills,
+            contacts: contacts,
+            socialMedia: socialMedia,
+            customSections: customSections,
+            template: document.querySelector(".template-card.active")?.dataset.template || "template-1",
+            colors: {
+                primary: getComputedStyle(document.documentElement).getPropertyValue('--primary-color'),
+                accent: getComputedStyle(document.documentElement).getPropertyValue('--accent-color'),
+                text: getComputedStyle(document.documentElement).getPropertyValue('--text-color'),
+                footer: getComputedStyle(document.documentElement).getPropertyValue('--footer-color')
+            },
+            font: document.getElementById("fontSelector").value,
+            background: document.getElementById("bgSelector").value,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+            views: 0
+        };
+
+        // Save to Firebase Firestore
+        const docRef = await db.collection('portfolios').add(portfolioData);
+        currentPortfolioId = docRef.id;
+        
+        const shareableURL = `${window.location.origin}${window.location.pathname}?view=${docRef.id}`;
+        showShareModal(shareableURL, docRef.id);
+        
+    } catch (error) {
+        console.error('Error hosting portfolio:', error);
+        alert('Error publishing portfolio. Please try again. Make sure Firebase is properly configured.');
+    } finally {
+        const btn = event.target;
+        btn.innerHTML = '<i class="fas fa-cloud-upload-alt"></i> Host Portfolio';
+        btn.disabled = false;
+    }
+}
+
+// Load portfolio when URL has ?view= parameter
+async function loadPortfolioFromURL() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const portfolioId = urlParams.get('view');
+    
+    if (portfolioId) {
+        try {
+            // Show loading state
+            document.getElementById('portfolioPreview').innerHTML = `
+                <div style="display: flex; justify-content: center; align-items: center; height: 400px;">
+                    <div style="text-align: center;">
+                        <i class="fas fa-spinner fa-spin fa-3x" style="color: var(--primary-color); margin-bottom: 20px;"></i>
+                        <p>Loading portfolio...</p>
+                    </div>
+                </div>
+            `;
+
+            // Hide editor, show only portfolio
+            document.querySelector('.sidebar').style.display = 'none';
+            document.querySelector('.toolbar').style.display = 'none';
+            document.querySelector('.preview-container').style.padding = '0';
+            document.querySelector('.portfolio-preview').style.maxWidth = 'none';
+            document.querySelector('.portfolio-preview').style.borderRadius = '0';
+            document.querySelector('.portfolio-preview').style.boxShadow = 'none';
+            
+            // Load portfolio data from Firebase
+            const doc = await db.collection('portfolios').doc(portfolioId).get();
+            
+            if (doc.exists) {
+                const portfolioData = doc.data();
+                
+                // Update view count
+                await db.collection('portfolios').doc(portfolioId).update({
+                    views: firebase.firestore.FieldValue.increment(1)
+                });
+                
+                applyPortfolioData(portfolioData);
+            } else {
+                document.getElementById('portfolioPreview').innerHTML = `
+                    <div style="display: flex; justify-content: center; align-items: center; height: 400px;">
+                        <div style="text-align: center;">
+                            <i class="fas fa-exclamation-triangle fa-3x" style="color: #e74c3c; margin-bottom: 20px;"></i>
+                            <h2>Portfolio Not Found</h2>
+                            <p>The portfolio you're looking for doesn't exist or has been deleted.</p>
+                            <button onclick="window.location.href = window.location.pathname" class="btn" style="margin-top: 20px;">
+                                <i class="fas fa-arrow-left"></i> Back to Editor
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }
+        } catch (error) {
+            console.error('Error loading portfolio:', error);
+            document.getElementById('portfolioPreview').innerHTML = `
+                <div style="display: flex; justify-content: center; align-items: center; height: 400px;">
+                    <div style="text-align: center;">
+                        <i class="fas fa-exclamation-triangle fa-3x" style="color: #e74c3c; margin-bottom: 20px;"></i>
+                        <h2>Error Loading Portfolio</h2>
+                        <p>Please try again later.</p>
+                        <button onclick="window.location.href = window.location.pathname" class="btn" style="margin-top: 20px;">
+                            <i class="fas fa-arrow-left"></i> Back to Editor
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+    }
+}
+
+function applyPortfolioData(data) {
+    // Apply ALL styling
+    if (data.colors) {
+        document.documentElement.style.setProperty('--primary-color', data.colors.primary);
+        document.documentElement.style.setProperty('--accent-color', data.colors.accent);
+        document.documentElement.style.setProperty('--text-color', data.colors.text);
+        document.documentElement.style.setProperty('--footer-color', data.colors.footer);
+    }
+    
+    // Apply font
+    if (data.font) {
+        document.documentElement.style.setProperty('--font-main', data.font);
+    }
+    
+    // Apply background
+    if (data.background) {
+        const preview = document.getElementById("portfolioPreview");
+        const bgClasses = ['bg-white','bg-light-gray','bg-light-blue','bg-light-green','bg-light-yellow','bg-light-purple','bg-pattern-1','bg-pattern-2','bg-pattern-3','bg-pattern-4','bg-pattern-5'];
+        preview.classList.remove(...bgClasses);
+        preview.classList.add(data.background);
+    }
+    
+    // Update global variables
+    profileImage = data.profileImage || "";
+    projects = data.projects || [];
+    certificates = data.certificates || [];
+    skills = data.skills || [];
+    contacts = data.contacts || [];
+    socialMedia = data.socialMedia || [];
+    customSections = data.customSections || [];
+    
+    // Force update preview with saved template
+    if (data.template) {
+        // Set the active template
+        document.querySelectorAll(".template-card").forEach(card => {
+            card.classList.toggle("active", card.dataset.template === data.template);
+        });
+        
+        // Update preview with the saved template
+        updatePreview();
+    }
+}
+
+function showShareModal(url, portfolioId) {
+    const modal = document.createElement('div');
+    modal.style.cssText = `
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+        background: rgba(0,0,0,0.8); display: flex; align-items: center; 
+        justify-content: center; z-index: 10000;
+    `;
+    
+    modal.innerHTML = `
+        <div style="background: white; padding: 30px; border-radius: 12px; max-width: 500px; width: 90%;">
+            <h2 style="color: var(--primary-color); margin-bottom: 20px;">
+                <i class="fas fa-check-circle" style="color: #4CAF50;"></i> Portfolio Published!
+            </h2>
+            <p style="margin-bottom: 15px; color: #666;">Your portfolio is now live and shareable:</p>
+            <div style="background: #f5f5f5; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                <input type="text" id="portfolioUrl" value="${url}" 
+                       style="width: 100%; border: none; background: transparent; color: #333; font-size: 14px;" readonly>
+            </div>
+            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                <button onclick="copyPortfolioUrl()" class="btn" style="flex: 1;">
+                    <i class="fas fa-copy"></i> Copy Link
+                </button>
+                <button onclick="window.open('${url}', '_blank')" class="btn" style="flex: 1;">
+                    <i class="fas fa-eye"></i> View Live
+                </button>
+                <button onclick="closeShareModal()" class="btn" style="background: #6c757d;">
+                    <i class="fas fa-times"></i> Close
+                </button>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+}
+
+function copyPortfolioUrl() {
+    const urlInput = document.getElementById('portfolioUrl');
+    urlInput.select();
+    document.execCommand('copy');
+    const btn = event.target;
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-check"></i> Copied!';
+    setTimeout(() => { btn.innerHTML = originalText; }, 2000);
+}
+
+function closeShareModal() {
+    const modals = document.querySelectorAll('div');
+    modals.forEach(modal => {
+        if (modal.style.position === 'fixed' && 
+            modal.style.background === 'rgba(0, 0, 0, 0.8)') {
+            modal.remove();
+        }
+    });
+}
+
+// Auto-load portfolio on page load
+loadPortfolioFromURL();
+
+/* initialize preview */
+updatePreview();
+</script>
+</body>
+</html>
