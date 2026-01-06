@@ -287,7 +287,10 @@ Role: ${input}
    HEALTH & ROOT
 ======================= */
 app.get("/health", (_, res) => res.json({ status: "OK" }));
-app.get("/", (_, res) => res.sendFile(join(__dirname, "index.html")));
+app.get("/", (_, res) =>
+  res.sendFile(join(__dirname, "public", "index.html"))
+);
+
 
 /* =======================
    START SERVER
@@ -296,3 +299,4 @@ const PORT = process.env.PORT || 3001;
 app.listen(PORT, () =>
   console.log(`✅ Server running at http://localhost:${PORT}`)
 );
+
